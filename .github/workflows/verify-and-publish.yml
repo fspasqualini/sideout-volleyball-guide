@@ -1,0 +1,46 @@
+name: Verify court database and publish
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pinned source, all contexts, and rotation rules
+        run: python3 scripts/check_schemes.py
+      - name: Check browser JavaScript syntax
+        run: |
+          node --check app.js
+          node --check i18n.js
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare checked static site
+        run: |
+          mkdir -p _site/data _site/references/rotazionivolley
+          cp index.html styles.css app.js i18n.js favicon.svg .nojekyll _site/
+          cp data/schemes.json data/README.md _site/data/
+          cp references/rotazionivolley/LICENSE references/rotazionivolley/NOTICE.md _site/references/rotazionivolley/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

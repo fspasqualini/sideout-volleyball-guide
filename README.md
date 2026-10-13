@@ -4,7 +4,8 @@ A beginner-friendly, bilingual (Italian/English) guide to six-player indoor voll
 
 ## Run locally
 
-Open `index.html` in a browser, or serve this folder with any static file server:
+Serve this folder with any static file server, because the app loads its court
+database from `data/schemes.json`:
 
 ```bash
 python3 -m http.server 8000
@@ -16,14 +17,14 @@ Then visit `http://localhost:8000`.
 
 There are no build dependencies or environment variables.
 
-- **GitHub Pages:** Put the files at the root of a GitHub repository. In **Settings → Pages**, publish from the main branch and `/ (root)`.
+- **GitHub Pages:** Set **Settings → Pages → Source** to **GitHub Actions**. The committed workflow verifies the scheme database before publishing the static site from `main`.
 - **Cloudflare Pages:** Connect the GitHub repository with no framework preset. Use `exit 0` as the build command and `.` (the repository root) as the output directory.
 
 All asset links are relative, so the same files work at a GitHub Pages project URL or a custom domain. The "Share this view" button copies the current language, lineup, role, and rule settings in the URL. The language choice is also remembered in the browser.
 
 ## Content scope
 
-The main court shows a full example 5–1 team. It rotates the lineup so the selected role starts in the chosen numbered spot, then shows five stages: numbered rotation spots, serve contact, serve receive or defense, the switch into attack, and the switch back to defense. In the first stage, the players occupy their numbered rotation spots; when the setter is in position 1, the opposite is in position 4. In later stages, markers show tactical playing areas, so the opposite can move to the right side while remaining opposite the setter in the rotation order. The orange player is the selected role; dark players are teammates. The diagram is a teaching example, not a legal lineup checker. Its stack uses conservative player-center spacing; real overlap calls depend on players' feet. Teams can use different serve-receive and defensive patterns. The numbered position determines each player's front/back status for the whole rally even after moving.
+The main court reads the [verified scheme catalog](data/README.md), a pinned 5–1 three-receiver example, and shows five moments: numbered rotation spots, serve contact, serve receive or defense, the switch into attack, and the switch back to defense. In the first moment, the players occupy their numbered rotation spots; when the setter is in position 1, the opposite is in position 4. In later moments, markers show tactical playing areas, so the opposite can move to the right side while remaining opposite the setter in the rotation order. The orange player is the selected role; dark players are teammates. The diagram is a teaching example, not a legal lineup checker. Real overlap calls depend on players' feet. Teams can use different serve-receive and defensive patterns. The numbered position determines each player's front/back status for the whole rally even after moving.
 
 The sample 5–1 lineup has one setter, one opposite, two outside hitters, and two middle blockers. **Without libero**, both middles stay on court, including the back-row middle. **With libero**, the libero replaces the back-row middle between rallies except when the regular middle must serve. Under the selected USA Volleyball rules, the example assigns the libero to serve for Middle 1 in one service position; under FIVB rules, neither libero may serve. Both middles are selectable separately. The defensive specialist is an optional ordinary substitution for Outside 2, so both middles remain visible in the no-libero setup. The team diagram reflects the selected lineup. These examples do not model every team's complete substitution plan.
 
@@ -38,3 +39,4 @@ Official sources reviewed 13 October 2026:
 - [FIVB guide to volleyball roles](https://www.fivb.com/volleyball/the-game/) for the general role descriptions.
 - [FIVB Level I Coaches Manual](https://www.fivb.com/wp-content/uploads/2024/03/FIVB_Coach_Manual_EN.pdf) for service reception and defensive systems.
 - [FIVB Level II Coaches Manual](https://www.fivb.com/wp-content/uploads/2024/03/Coaches_Manual_Level_II_EN.pdf) for the 5–1 offense.
+- [rotazionivolley](https://rotazioni.volleyserve.it/) for the Apache-licensed three-receiver example, pinned and attributed in [references/rotazionivolley/NOTICE.md](references/rotazionivolley/NOTICE.md).

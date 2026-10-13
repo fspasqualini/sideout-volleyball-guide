@@ -132,6 +132,9 @@ const staticItalian = {
   "USA Volleyball 2026 update ↗": "Aggiornamento USA Volleyball 2026 ↗",
   "FIVB 2026 trial announcement ↗": "Sperimentazione FIVB 2026 ↗",
   "FIVB Coaches Manual ↗": "Manuale allenatori FIVB ↗",
+  "5–1 three-receiver example · court positions from": "Esempio 5–1 con tre ricevitori · posizioni in campo da",
+  "· checked against rotation rules": "· verificato rispetto alle regole di rotazione",
+  "Rotazioni Volley example ↗": "Esempio Rotazioni Volley ↗",
   "A little more confidence, one rotation at a time.": "Un po' più di sicurezza, una rotazione alla volta.",
   "Back to top ↑": "Torna su ↑",
 };
