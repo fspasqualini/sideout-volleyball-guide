@@ -1,6 +1,6 @@
 # Sideout
 
-A beginner-friendly, bilingual (Italian/English) guide to six-player indoor volleyball rotations and roles. Choose a 5–1 lineup with or without a libero, your role, numbered rotation position, serve situation, and rule set to see a path and short instructions. The sample lineup shows all six players moving after each sideout.
+A beginner-friendly, bilingual (Italian/English) guide to six-player indoor volleyball rotations and roles. Choose Open smart special or a 5–1 lineup with or without a Libero, your role, numbered rotation position, serve situation, and rule set to see a path and short instructions. The first view opens in Open smart special, Italian, FIVB 2025–28, and serve receive to show the coach's plan.
 
 ## Run locally
 
@@ -27,6 +27,8 @@ All asset links are relative, so the same files work at a GitHub Pages project U
 The main court reads the [verified scheme catalog](data/README.md), a pinned 5–1 three-receiver example, and shows five moments: numbered rotation spots, serve contact, serve receive or defense, the switch into attack, and the switch back to defense. In the first moment, the players occupy their numbered rotation spots; when the setter is in position 1, the opposite is in position 4. In later moments, markers show tactical playing areas, so the opposite can move to the right side while remaining opposite the setter in the rotation order. The orange player is the selected role; dark players are teammates. The diagram is a teaching example, not a legal lineup checker. Real overlap calls depend on players' feet. Teams can use different serve-receive and defensive patterns. The numbered position determines each player's front/back status for the whole rally even after moving.
 
 The sample 5–1 lineup has one setter, one opposite, two outside hitters, and two middle blockers. **Without libero**, both middles stay on court, including the back-row middle. **With libero**, the libero replaces the back-row middle between rallies except when the regular middle must serve. Under the selected USA Volleyball rules, the example assigns the libero to serve for Middle 1 in one service position; under FIVB rules, neither libero may serve. Both middles are selectable separately. The defensive specialist is an optional ordinary substitution for Outside 2, so both middles remain visible in the no-libero setup. The team diagram reflects the selected lineup. These examples do not model every team's complete substitution plan.
+
+**Open smart special** uses the six three-player serve-receive stacks from a coach-supplied Sporting Club 2000 U16 PDF (14 March 2015). The two outsides and the back-row middle receive; the opposite covers only very short serves. The coach's P1 plan keeps the opposite at left front and Outside 1 at right front. The original PDF is not redistributed. Its transcribed data and SHA-256 are in [references/coach-open-smart-special/receive.json](references/coach-open-smart-special/receive.json). Serving, attack, and defense views use the existing licensed example adapted to the coach's player order, because the PDF only documents reception.
 
 The default rules are FIVB 2025–28. The selector also includes USA Volleyball 2025–27 and a 2026 FIVB trial used at specified competitions. Confirm the local league rules before relying on the timing of movement.
 

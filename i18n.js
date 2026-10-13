@@ -10,6 +10,7 @@ const staticItalian = {
   "Know your": "Scopri la tua",
   "next move.": "prossima mossa.",
   "New to volleyball? Choose a lineup with or without a libero, then pick your role and rotation. We’ll show where you start, where you move, and what to do when the ball is in play.": "Sei alle prime armi? Scegli una formazione con o senza Libero, poi il tuo ruolo e la tua posizione nella rotazione. Ti mostriamo da dove parti, dove ti sposti e cosa fai durante lo scambio.",
+  "New to volleyball? Choose a team plan, then pick your role and rotation. We’ll show where you start, where you move, and what to do when the ball is in play.": "Sei alle prime armi? Scegli uno schema, poi il tuo ruolo e la tua posizione nella rotazione. Ti mostriamo da dove parti, dove ti sposti e cosa fai durante lo scambio.",
   "Explore the court": "Esplora il campo",
   "Start with the basics": "Parti dalle basi",
   "Made for first games, team talks, and quick refreshers.": "Per le prime partite, le riunioni di squadra e i ripassi veloci.",
@@ -62,6 +63,7 @@ const staticItalian = {
   "Choose your lineup": "Scegli la formazione",
   "5–1 with Libero": "5–1 con Libero",
   "5–1 without Libero": "5–1 senza Libero",
+  "Open smart special": "Open smart special",
   "Who are you?": "Qual è il tuo ruolo?",
   "Where are you in the rotation?": "Dove sei nella rotazione?",
   "Choose where your role begins. The sample 5–1 lineup rotates to match; the top row is near the net.": "Scegli la tua posizione di partenza. La formazione 5–1 d'esempio ruota di conseguenza; la fila in alto è vicina alla rete.",
@@ -151,7 +153,7 @@ const roleItalian = {
     receiveBack: "Quando arriva la battuta, spostati dalla tua posizione verso zona 2. Un compagno riceve; tu alzi la seconda palla.",
   },
   outside: {
-    name: "Banda",
+    name: "Banda 1",
     intro: "Attacca da sinistra, spesso riceve la battuta e mura sul lato sinistro.",
     front: "Vai verso zona 4. Se ricevi, passa la palla e poi preparati alla rincorsa d'attacco.",
     back: "Copri la ricezione in zona 5 e difendi le palle dirette sul tuo lato.",
@@ -203,6 +205,7 @@ const roleItalian = {
 };
 
 roleItalian.middle2 = { ...roleItalian.middle, name: "Centrale 2" };
+roleItalian.outside2 = { ...roleItalian.outside, name: "Banda 2" };
 
 const sourceTextNodes = [];
 const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);

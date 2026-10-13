@@ -18,7 +18,7 @@ const roles = {
       "As the serve comes in, move from your rotation spot toward right front. Let a passer take the first ball; you take the second.",
   },
   outside: {
-    name: "Outside hitter",
+    name: "Outside hitter 1",
     short: "OH",
     icon: "↖",
     intro:
@@ -107,6 +107,7 @@ const roles = {
   },
 };
 roles.middle2 = { ...roles.middle, name: "Middle blocker 2", short: "MB2" };
+roles.outside2 = { ...roles.outside, name: "Outside hitter 2", short: "OH2" };
 roles.middle.name = "Middle blocker 1";
 
 function roleInfo(key) {
@@ -114,8 +115,9 @@ function roleInfo(key) {
 }
 
 const copy = (english, italian) => state.lang === "it" ? italian : english;
-const visibleRoles = () => ["setter", "outside", "opposite", "middle", "middle2", "libero", "ds"].filter(
-  (key) => key !== "libero" || state.lineup === "libero",
+const visibleRoles = () => ["setter", "outside", "outside2", "opposite", "middle", "middle2", "libero", "ds"].filter(
+  (key) => (key !== "libero" || state.lineup === "libero") &&
+    (key !== "ds" || state.lineup !== "open-smart-special"),
 );
 
 const positions = {
@@ -158,11 +160,11 @@ const valid = (value, options, fallback) =>
   options.includes(value) ? value : fallback;
 const state = {
   lang: valid(params.get("lang"), ["en", "it"],
-    localStorage.getItem("sideout-lang") || (navigator.language.startsWith("it") ? "it" : "en")),
-  lineup: valid(params.get("lineup"), ["libero", "no-libero"], "libero"),
+    valid(localStorage.getItem("sideout-lang"), ["en", "it"], "it")),
+  lineup: valid(params.get("lineup"), ["open-smart-special", "libero", "no-libero"], "open-smart-special"),
   role: valid(params.get("role"), Object.keys(roles), "setter"),
   position: valid(Number(params.get("position")), [1, 2, 3, 4, 5, 6], 1),
-  serve: valid(params.get("serve"), ["ours", "theirs"], "ours"),
+  serve: valid(params.get("serve"), ["ours", "theirs"], "theirs"),
   rules: valid(params.get("rules"), ["fivb", "usav", "trial"], "fivb"),
   step: valid(
     params.has("step") ? Number(params.get("step")) : null,
@@ -170,7 +172,8 @@ const state = {
     2,
   ),
 };
-if (state.lineup === "no-libero" && state.role === "libero") state.role = "setter";
+if (state.lineup !== "libero" && state.role === "libero") state.role = "setter";
+if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "setter";
 
 const $ = (id) => document.getElementById(id);
 const positionLabel = (spot) => copy(positions[spot].label.toLowerCase(), {
@@ -189,6 +192,7 @@ const middleOffCourt = () =>
 const selectedStartingId = {
   setter: "S",
   outside: "OH1",
+  outside2: "OH2",
   opposite: "OP",
   middle: "MB1",
   middle2: "MB2",
@@ -198,14 +202,17 @@ const selectedStartingId = {
 
 function activeLineup() {
   const anchor = selectedStartingId[state.role];
+  const rotations = state.lineup === "open-smart-special"
+    ? schemeDatabase.coachRotations : schemeDatabase.rotations;
   const rotation = schemeDatabase.rotationOrder.find((number) =>
-    schemeDatabase.rotations[number][state.position] === anchor,
+    rotations[number][state.position] === anchor,
   );
   if (rotation === undefined) throw new Error(`No verified rotation for ${state.role} in ${state.position}`);
-  const variant = `${state.lineup}${state.role === "ds" ? "-ds" : ""}`;
+  const variant = state.lineup === "open-smart-special" ? state.lineup
+    : `${state.lineup}${state.role === "ds" ? "-ds" : ""}`;
   const scenario = schemeDatabase.scenarios[variant][state.serve][state.rules][rotation];
   const candidate = {
-    setter: "S", outside: "OH1", opposite: "OP", middle: "MB1",
+    setter: "S", outside: "OH1", outside2: "OH2", opposite: "OP", middle: "MB1",
     middle2: "MB2", libero: "L", ds: "DS",
   }[state.role];
   const selected = Object.values(scenario.bySlot).includes(candidate) ? candidate : null;
@@ -230,6 +237,23 @@ function timingText() {
 
 function stepCopy() {
   const role = roleInfo(state.role);
+  const coachRotation = state.lineup === "open-smart-special"
+    ? schemeDatabase.rotationOrder[activeLineup().turns] : null;
+  const coachPasser = coachRotation !== null &&
+    schemeDatabase.coachPassers[String(coachRotation)].includes({
+      outside: "OH1", outside2: "OH2", middle: "MB1", middle2: "MB2",
+    }[state.role] || "");
+  const defensiveJob = () => {
+    if (state.lineup === "open-smart-special" && !frontRow()) {
+      if (["middle", "middle2"].includes(state.role)) return copy(
+        "Defend zone 5 on the left, then move to cover your team's attack.",
+        "Difendi in zona 5 a sinistra, poi spostati a coprire l'attacco della tua squadra.");
+      if (["outside", "outside2"].includes(state.role)) return copy(
+        "Defend zone 6 in the middle back; call the ball and be ready to cover the next attack.",
+        "Difendi in zona 6 al centro dietro; chiama la palla e preparati a coprire il prossimo attacco.");
+    }
+    return frontRow() ? role.serveFront : role.serveBack;
+  };
   const row = frontRow()
     ? copy("front-row", "prima linea")
     : copy("back-row", "seconda linea");
@@ -304,11 +328,17 @@ function stepCopy() {
         state.serve === "ours"
           ? copy("Defend their next attack.", "Difendi il prossimo attacco avversario.")
           : copy("Receive the serve together.", "Ricevete insieme la battuta."),
-      body:
+      body: state.lineup === "open-smart-special" && state.serve === "theirs"
+        ? coachPasser
+          ? copy("You are one of the three passers. Watch your lane and send the serve toward the setter; then move to your playing area.", "Sei uno dei tre ricevitori. Copri la tua corsia e indirizza la battuta al palleggiatore; poi vai nella tua zona di gioco.")
+          : state.role === "opposite"
+            ? copy("You do not join the three-player receive line. Cover only a very short serve, then get ready to attack.", "Non partecipi alla ricezione a tre. Copri solo una battuta cortissima, poi preparati ad attaccare.")
+            : state.role === "setter"
+              ? copy("Let the three passers take the serve. Move toward the setting area as soon as the ball is hit and prepare for the second touch.", "Lascia ricevere ai tre ricevitori. Appena la palla è battuta, vai verso la zona di alzata e preparati per il secondo tocco.")
+              : copy("Stay low and cover a very short serve; then move to your playing area.", "Stai basso e copri una battuta cortissima; poi vai nella tua zona di gioco.")
+        :
         state.serve === "ours"
-          ? frontRow()
-            ? role.serveFront
-            : role.serveBack
+          ? defensiveJob()
           : frontRow()
             ? role.receiveFront
             : role.receiveBack,
@@ -316,7 +346,11 @@ function stepCopy() {
   if (state.step === 4)
     return {
       title: copy("Switch back to defense.", "Torna in difesa."),
-      body: frontRow() ? role.serveFront : role.serveBack,
+      body: state.lineup === "open-smart-special" && state.serve === "theirs" && coachRotation === 1 && frontRow() && state.role === "opposite"
+        ? copy("Stay on the left in zone 4, as in the coach's P1 plan. Watch the opponent's right-side hitter and help block.", "Resta a sinistra in zona 4, come nello schema P1 del coach. Osserva l'attaccante avversario a destra e aiuta a murare.")
+        : state.lineup === "open-smart-special" && state.serve === "theirs" && coachRotation === 1 && frontRow() && state.role === "outside"
+          ? copy("Stay on the right in zone 2, as in the coach's P1 plan. Cover tips and help block on this side.", "Resta a destra in zona 2, come nello schema P1 del coach. Copri i pallonetti e aiuta a murare su questo lato.")
+          : defensiveJob(),
     };
   const attackCopy = {
     setter:
@@ -335,6 +369,20 @@ function stepCopy() {
     ds: copy("Cover the hitters and be ready to dig if the ball comes back. Follow your team's substitution plan for the next rotation.", "Copri gli attaccanti e preparati a difendere la palla che torna. Segui il piano di sostituzioni della squadra alla prossima rotazione."),
   };
   attackCopy.middle2 = attackCopy.middle;
+  attackCopy.outside2 = attackCopy.outside;
+  if (coachRotation === 1 && state.serve === "theirs") {
+    if (state.role === "opposite") attackCopy.opposite = copy(
+      "In this P1 plan, stay on the left and attack from zone 4.",
+      "In questo schema P1 resti a sinistra e attacchi da zona 4.");
+    if (state.role === "outside") attackCopy.outside = copy(
+      "In this P1 plan, Outside 1 attacks from zone 2; do not swap with the opposite.",
+      "In questo schema P1, Banda 1 attacca da zona 2: non scambiarti con l'Opposto.");
+  }
+  if (coachRotation === 2 && state.serve === "theirs" && state.role === "opposite") {
+    attackCopy.opposite = copy(
+      "This P2 plan has no zone-2 attack. Cover the hitter and prepare for the next ball.",
+      "In questo schema P2 non c'è un attacco da zona 2. Copri l'attaccante e preparati alla palla successiva.");
+  }
   return {
     title: copy("Switch from first touch to attack.", "Passa dal primo tocco all'attacco."),
     body: attackCopy[state.role],
@@ -345,7 +393,7 @@ function renderOptions() {
   $("role-options").innerHTML = visibleRoles().map((key) => [key, roleInfo(key)])
     .map(
       ([key, role]) =>
-        `<button type="button" class="role-option ${state.role === key ? "active" : ""}" data-role="${key}" aria-pressed="${state.role === key}">${key === "outside" ? copy("Outside", "Banda") : key === "middle" ? copy("Middle 1", "Centrale 1") : key === "middle2" ? copy("Middle 2", "Centrale 2") : key === "opposite" ? copy("Opposite", "Opposto") : key === "ds" ? copy("DS", "SD") : role.name}</button>`,
+        `<button type="button" class="role-option ${state.role === key ? "active" : ""}" data-role="${key}" aria-pressed="${state.role === key}">${key === "outside" ? copy("Outside 1", "Banda 1") : key === "outside2" ? copy("Outside 2", "Banda 2") : key === "middle" ? copy("Middle 1", "Centrale 1") : key === "middle2" ? copy("Middle 2", "Centrale 2") : key === "opposite" ? copy("Opposite", "Opposto") : key === "ds" ? copy("DS", "SD") : role.name}</button>`,
     )
     .join("");
   $("rotation-options").innerHTML = [4, 3, 2, 5, 6, 1]
@@ -366,10 +414,12 @@ function renderOptions() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
-  $("lineup-help").textContent = state.lineup === "libero"
-    ? copy("Libero replaces the back-row middle between rallies.", "Il Libero sostituisce il centrale di seconda linea tra gli scambi.")
-    : copy("Both middles stay on court, including in the back row.", "Entrambi i centrali restano in campo, anche in seconda linea.");
-  $("lineup-options").setAttribute("aria-label", copy("Choose a 5–1 lineup", "Scegli la formazione 5–1"));
+  $("lineup-help").textContent = state.lineup === "open-smart-special"
+    ? copy("Coach's three-player receive: two outsides and the back-row middle. No Libero; the opposite covers only very short serves.", "Ricezione a tre del coach: due bande e il centrale dietro. Senza Libero; l'Opposto copre solo le battute cortissime.")
+    : state.lineup === "libero"
+      ? copy("Libero replaces the back-row middle between rallies.", "Il Libero sostituisce il centrale di seconda linea tra gli scambi.")
+      : copy("Both middles stay on court, including in the back row.", "Entrambi i centrali restano in campo, anche in seconda linea.");
+  $("lineup-options").setAttribute("aria-label", copy("Choose a team plan", "Scegli lo schema di squadra"));
   $("player-selection-summary").textContent = `${roleInfo(state.role).name} · ${copy("position", "posizione")} ${state.position}`;
   $("focus-options").setAttribute("aria-label", copy("Choose attack or defense view", "Scegli vista attacco o difesa"));
   document.querySelector(".setup-bar").setAttribute("aria-label", copy("General game settings", "Impostazioni generali di gioco"));
@@ -452,7 +502,10 @@ function renderCourt() {
   $("server-area").style.visibility =
     state.serve === "ours" && state.step < 2 ? "visible" : "hidden";
   $("court-kicker").textContent =
-    `${state.serve === "ours" ? copy("OUR SERVE", "BATTUTA NOSTRA") : copy("THEIR SERVE", "BATTUTA AVVERSARIA")} · 5–1 ${state.lineup === "libero" ? copy("WITH LIBERO", "CON LIBERO") : copy("NO LIBERO", "SENZA LIBERO")} · R${team.turns + 1}`;
+    `${state.serve === "ours" ? copy("OUR SERVE", "BATTUTA NOSTRA") : copy("THEIR SERVE", "BATTUTA AVVERSARIA")} · ${state.lineup === "open-smart-special" ? "OPEN SMART SPECIAL" : `5–1 ${state.lineup === "libero" ? copy("WITH LIBERO", "CON LIBERO") : copy("NO LIBERO", "SENZA LIBERO")}`} · R${team.turns + 1}`;
+  $("scheme-source-label").textContent = state.lineup === "open-smart-special"
+    ? copy("Coach's 2015 serve-receive diagrams · later play adapted from", "Schemi di ricezione del coach (2015) · gioco successivo adattato da")
+    : copy("5–1 three-receiver example · court positions from", "Esempio 5–1 con tre ricevitori · posizioni in campo da");
   $("court-side-tag").textContent =
     state.lang === "it"
       ? `Giocatore di ${frontRow() ? "prima" : "seconda"} linea · posizione ${state.position}`
@@ -521,7 +574,8 @@ function renderTeam() {
   const { turns: teamRotation, bySlot: lineup } = activeLineup();
   const highlighted = {
     setter: ["S"],
-    outside: ["OH1", "OH2"],
+    outside: ["OH1"],
+    outside2: ["OH2"],
     opposite: ["OP"],
     middle: ["MB1", "MB2"],
     middle2: ["MB2"],
@@ -571,7 +625,8 @@ document.addEventListener("click", (event) => {
   }
   if (button.dataset.lineup) {
     state.lineup = button.dataset.lineup;
-    if (state.lineup === "no-libero" && state.role === "libero") state.role = "middle";
+    if (state.lineup !== "libero" && state.role === "libero") state.role = "middle";
+    if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "outside";
     render();
   }
   if (button.dataset.lang) {

@@ -1,0 +1,28 @@
+{
+  "title": "SPORTING CLUB 2000 - Schemi di ricezione a 3 nella pallavolo - Under 16",
+  "date": "2015-03-14",
+  "sourcePdfSha256": "40c49f169f65788ee71e43dc7dfb2eacb422900243e864b985adf25bacfc7bf9",
+  "note": "Manually transcribed from the coach-supplied one-page PDF. Coordinates are approximate marker centers, expressed as percentages of our half court. Its third panel is headed 'Palleggiatore in zona 1 - P5'; the drawn numbered spots establish that it is P5.",
+  "receiveAtContact": {
+    "1": {"S": [92, 72], "OH1": [82, 55], "OH2": [19, 60], "MB1": [50, 60], "MB2": [63, 5], "OP": [13, 5]},
+    "6": {"S": [58, 18], "OH1": [86, 55], "OH2": [18, 50], "MB1": [50, 57], "MB2": [85, 25], "OP": [49, 5]},
+    "5": {"S": [43, 12], "OH1": [53, 70], "OH2": [18, 57], "MB1": [13, 5], "MB2": [83, 70], "OP": [89, 18]},
+    "4": {"S": [6, 5], "OH1": [51, 64], "OH2": [21, 57], "MB1": [18, 16], "MB2": [84, 64], "OP": [88, 82]},
+    "3": {"S": [60, 5], "OH1": [18, 52], "OH2": [82, 57], "MB1": [87, 12], "MB2": [51, 60], "OP": [71, 87]},
+    "2": {"S": [65, 5], "OH1": [23, 57], "OH2": [52, 65], "MB1": [82, 65], "MB2": [14, 12], "OP": [40, 90]}
+  },
+  "passers": {
+    "1": ["OH1", "OH2", "MB1"],
+    "6": ["OH1", "OH2", "MB1"],
+    "5": ["OH1", "OH2", "MB2"],
+    "4": ["OH1", "OH2", "MB2"],
+    "3": ["OH1", "OH2", "MB2"],
+    "2": ["OH1", "OH2", "MB1"]
+  },
+  "coachingRules": [
+    "The opposite never joins the three-player serve-receive line.",
+    "At P1, the opposite attacks from zone 4 and Outside 1 from zone 2; they do not swap.",
+    "Back-row middles defend zone 5, back-row outsides zone 6, and a back-row setter or opposite zone 1.",
+    "At P2, the coach's scheme has no zone-2 attacker."
+  ]
+}

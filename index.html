@@ -46,7 +46,7 @@
             </div>
             <h1 id="hero-title">Know your <em>next move.</em></h1>
             <p>
-              New to volleyball? Choose a lineup with or without a libero, then
+              New to volleyball? Choose a team plan, then
               pick your role and rotation. We’ll show where you start, where you
               move, and what to do when the ball is in play.
             </p>
@@ -97,6 +97,7 @@
                 <fieldset class="setup-control setup-lineup">
                   <legend>Lineup</legend>
                   <div class="segmented" id="lineup-options">
+                    <button type="button" data-lineup="open-smart-special">Open smart special</button>
                     <button type="button" data-lineup="libero">5–1 with Libero</button>
                     <button type="button" data-lineup="no-libero">5–1 without Libero</button>
                   </div>
@@ -257,7 +258,7 @@
                 <div class="player-key" id="player-key" aria-label="Player marker abbreviations"></div>
                 <p class="rotation-relationship" id="rotation-relationship"></p>
                 <p class="scheme-provenance">
-                  <span>5–1 three-receiver example · court positions from</span>
+                  <span id="scheme-source-label">5–1 three-receiver example · court positions from</span>
                   <a href="https://rotazioni.volleyserve.it/" target="_blank" rel="noopener noreferrer">Rotazioni Volley ↗</a>
                   <span>· checked against rotation rules</span>
                 </p>

@@ -14,7 +14,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "references/rotazionivolley/ricezione-a-3.json"
 OUTPUT = ROOT / "data/schemes.json"
+COACH = ROOT / "references/coach-open-smart-special/receive.json"
 SOURCE_SHA256 = "9fec10d49f723d5036feaa5ea78a7288d04409d759cf05c601c57d0585d0b5c2"
+COACH_TRANSCRIPTION_SHA256 = "39c40c03136b9647cf57b6f799f84cb253d54f23074a22f6b1e71bd043c1e29b"
 SOURCE_REVISION = "ecd4455d2b9972fc56caa31323f8eb42855bf66f"
 
 SOURCE_TO_APP = {
@@ -22,6 +24,8 @@ SOURCE_TO_APP = {
     "C2": "MB1", "C1": "MB2", "L1": "L",
 }
 APP_TO_SOURCE = {value: key for key, value in SOURCE_TO_APP.items()}
+COACH_TO_APP = {**SOURCE_TO_APP, "C1": "MB1", "C2": "MB2"}
+APP_TO_COACH = {value: key for key, value in COACH_TO_APP.items()}
 ROTATION_ORDER = [1, 6, 5, 4, 3, 2]
 NEXT_POSITION = {1: 6, 6: 5, 5: 4, 4: 3, 3: 2, 2: 1}
 COURT_SPOTS = {
@@ -107,7 +111,22 @@ def layout(reference, rotation, serve, phase, slots):
     return positions
 
 
-def build_database(reference):
+def coach_layout(reference, coach, rotation, serve, phase, slots):
+    if phase == "base":
+        positions = {player: dict(COURT_SPOTS[int(slot)]) for slot, player in slots.items()}
+    elif serve == "theirs" and phase in ("receiveReceive", "receiveSet"):
+        positions = {player: dict(zip(("x", "y"), point)) for player, point in
+                     coach["receiveAtContact"][str(rotation)].items()}
+    else:
+        source_points = reference["positions"][phase][str(rotation)]
+        positions = {player: normalized(source_points[APP_TO_COACH[player]])
+                     for player in slots.values()}
+    if serve == "ours" and phase in ("base", "serveServe", "switchServe"):
+        positions[slots["1"]] = {"x": 82, "y": 109}
+    return positions
+
+
+def build_database(reference, coach):
     expected_first = {1: "P", 2: "S1", 3: "C2", 4: "O", 5: "S2", 6: "C1"}
     base = {}
     for rotation in ROTATION_ORDER:
@@ -115,6 +134,11 @@ def build_database(reference):
         if rotation == 1 and slots != expected_first:
             raise ValueError(f"Reference R1 changed: {slots}")
         base[str(rotation)] = {str(slot): SOURCE_TO_APP[player] for slot, player in slots.items()}
+    coach_base = {
+        str(rotation): {str(slot): COACH_TO_APP[player] for slot, player in
+                        source_slots(reference["positions"]["base"][str(rotation)]).items()}
+        for rotation in ROTATION_ORDER
+    }
 
     scenarios = {}
     for variant in ("libero", "no-libero", "libero-ds", "no-libero-ds"):
@@ -135,9 +159,28 @@ def build_database(reference):
                         steps.append({"phase": phase, "positions": positions})
                     scenarios[variant][serve][rules][str(rotation)] = {"bySlot": slots, "steps": steps}
 
+    scenarios["open-smart-special"] = {}
+    for serve in ("ours", "theirs"):
+        scenarios["open-smart-special"][serve] = {}
+        for rules, phases in PHASES[serve].items():
+            scenarios["open-smart-special"][serve][rules] = {}
+            for rotation in ROTATION_ORDER:
+                slots = coach_base[str(rotation)]
+                steps = []
+                for index, phase in enumerate(phases):
+                    positions = coach_layout(reference, coach, rotation, serve, phase, slots)
+                    if serve == "ours" and index >= 2:
+                        server = slots["1"]
+                        positions[server] = normalized(
+                            reference["positions"][phase][str(rotation)][APP_TO_COACH[server]])
+                    steps.append({"phase": phase, "positions": positions})
+                scenarios["open-smart-special"][serve][rules][str(rotation)] = {
+                    "bySlot": slots, "steps": steps,
+                }
+
     return {
         "schemaVersion": 1,
-        "scope": "5-1 / three receivers (two outsides and, when selected, one libero)",
+        "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
         "reference": {
             "name": "rotazionivolley: ricezione-a-3",
             "url": "https://rotazioni.volleyserve.it/",
@@ -147,6 +190,13 @@ def build_database(reference):
             "license": "Apache-2.0",
         },
         "rotations": base,
+        "coachRotations": coach_base,
+        "coachPassers": coach["passers"],
+        "coachReference": {
+            "title": coach["title"], "date": coach["date"],
+            "sourcePdfSha256": coach["sourcePdfSha256"],
+            "transcription": "references/coach-open-smart-special/receive.json",
+        },
         "rotationOrder": ROTATION_ORDER,
         "nextPosition": NEXT_POSITION,
         "phasesByView": PHASES,
@@ -162,7 +212,11 @@ def main():
     actual_sha = hashlib.sha256(raw).hexdigest()
     if actual_sha != SOURCE_SHA256:
         raise SystemExit(f"Reference digest changed: {actual_sha}")
-    result = build_database(json.loads(raw))
+    coach_raw = COACH.read_bytes()
+    coach_sha = hashlib.sha256(coach_raw).hexdigest()
+    if coach_sha != COACH_TRANSCRIPTION_SHA256:
+        raise SystemExit(f"Coach transcription digest changed: {coach_sha}")
+    result = build_database(json.loads(raw), json.loads(coach_raw))
     expected = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.check:
         if not OUTPUT.exists() or OUTPUT.read_text() != expected:
