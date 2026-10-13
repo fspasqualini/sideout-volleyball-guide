@@ -39,7 +39,7 @@ jobs:
           cp data/schemes.json data/README.md _site/data/
           cp references/rotazionivolley/LICENSE references/rotazionivolley/NOTICE.md _site/references/rotazionivolley/
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
       - id: deployment
