@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f4eb" />
+    <meta
+      name="description"
+      content="A visual, beginner-friendly guide to indoor volleyball rotations, roles, and where to move on serve and serve receive."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Sideout — Find your place on court</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="Sideout home"
+          ><span class="brand-mark" aria-hidden="true">◒</span> sideout<span
+            class="brand-dot"
+            >.</span
+          ></a
+        >
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="#playbook">Playbook</a><a href="#roles">Roles</a
+          ><a href="#rules">Rules & sources</a>
+        </nav>
+        <div class="header-actions">
+          <div class="language-switch" role="group" aria-label="Language / Lingua">
+            <button type="button" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" data-lang="it" aria-pressed="false">IT</button>
+          </div>
+          <a class="header-cta" href="#playbook"
+            >Find my spot <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-line"></span> Volleyball, made visual
+            </div>
+            <h1 id="hero-title">Know your <em>next move.</em></h1>
+            <p>
+              New to volleyball? Choose a lineup with or without a libero, then
+              pick your role and rotation. We’ll show where you start, where you
+              move, and what to do when the ball is in play.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#playbook"
+                >Explore the court <span aria-hidden="true">↗</span></a
+              ><a class="text-link" href="#basics"
+                >Start with the basics <span aria-hidden="true">↓</span></a
+              >
+            </div>
+            <div class="hero-proof">
+              <span class="proof-icon">✳</span
+              ><span
+                >Made for first games, team talks, and quick refreshers.</span
+              >
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="hero-orbit orbit-one"></div>
+            <div class="hero-orbit orbit-two"></div>
+            <div class="hero-court">
+              <div class="hero-net"></div>
+              <div class="hero-line"></div>
+              <i class="ball ball-a"></i><i class="ball ball-b"></i
+              ><i class="ball ball-c"></i><i class="ball ball-d"></i
+              ><i class="ball ball-e"></i><i class="ball ball-f"></i
+              ><span class="hero-arrow">↗</span>
+            </div>
+            <div class="hero-sticker">
+              ONE COURT.<br />SIX SPOTS.<br /><strong>YOU GOT THIS.</strong>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="basics section-wrap"
+          id="basics"
+          aria-labelledby="basics-title"
+        >
+          <div class="section-heading">
+            <div>
+              <span class="kicker">01 / The quick version</span>
+              <h2 id="basics-title">First, the big picture.</h2>
+            </div>
+            <p>Three ideas make every rotation easier to read.</p>
+          </div>
+          <div class="basics-grid">
+            <article class="basic-card">
+              <span class="basic-number">01</span>
+              <div class="basic-symbol">↻</div>
+              <h3>Rotation is your starting order</h3>
+              <p>
+                Six players start in numbered spots. When your team wins the
+                serve back, everyone rotates one spot clockwise. You do not
+                rotate after every point.
+              </p>
+            </article>
+            <article class="basic-card">
+              <span class="basic-number">02</span>
+              <div class="basic-symbol">⇢</div>
+              <h3>Then you move to your job</h3>
+              <p>
+                Your rotation spot and your playing role are different. Once
+                your rule set allows movement, head to the space where your role
+                helps the team most.
+              </p>
+            </article>
+            <article class="basic-card">
+              <span class="basic-number">03</span>
+              <div class="basic-symbol">◎</div>
+              <h3>Three touches, one plan</h3>
+              <p>
+                Usually: pass or dig, set, then hit. On their serve, receive
+                first. On your serve, get ready to defend the return.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section
+          class="team-example section-wrap"
+          aria-labelledby="team-example-title"
+        >
+          <div class="team-example-copy">
+            <span class="kicker">SEE A WHOLE TEAM MOVE</span>
+            <h2 id="team-example-title">One sideout. Six new spots.</h2>
+            <p>
+              Here is a sample <strong>5–1 team</strong>: one setter, two
+              outsides, one opposite, and two middles. Tap “Next sideout” to
+              move all six starters one spot clockwise. The Libero option below
+              changes who plays in the back row.
+            </p>
+            <div class="team-example-actions">
+              <button
+                id="team-prev"
+                type="button"
+                aria-label="Previous rotation"
+              >
+                ←</button
+              ><span id="team-rotation-count">ROTATION 1 OF 6</span
+              ><button id="team-next" type="button">
+                Next sideout <span aria-hidden="true">↻</span>
+              </button>
+            </div>
+            <p class="team-example-note" id="team-example-note"></p>
+          </div>
+          <div class="team-board">
+            <div class="team-board-net">NET · FRONT ROW NEAREST</div>
+            <div class="team-grid" id="team-grid"></div>
+            <div class="team-board-caption">
+              TOP: FRONT ROW <span>BOTTOM: BACK ROW</span>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="playbook-section"
+          id="playbook"
+          aria-labelledby="playbook-title"
+        >
+          <div class="section-wrap">
+            <div class="section-heading playbook-heading">
+              <div>
+                <span class="kicker">02 / Your interactive playbook</span>
+                <h2 id="playbook-title">Find your place.</h2>
+              </div>
+              <p>See one full 5–1 team stack, receive, defend, and switch.</p>
+            </div>
+            <div class="playbook-layout">
+              <div class="controls-panel">
+                <div class="panel-topline">
+                  <span class="pill-live"><span></span> COURT VIEW</span
+                  ><button class="share-button" id="share-button" type="button">
+                    Share this view <span aria-hidden="true">↗</span>
+                  </button>
+                </div>
+                <fieldset class="control-group lineup-group">
+                  <legend>01 <span>Choose your lineup</span></legend>
+                  <div class="segmented" id="lineup-options">
+                    <button type="button" data-lineup="libero">5–1 with Libero</button>
+                    <button type="button" data-lineup="no-libero">5–1 without Libero</button>
+                  </div>
+                  <p class="control-help" id="lineup-help"></p>
+                </fieldset>
+                <fieldset class="control-group">
+                  <legend>02 <span>Who are you?</span></legend>
+                  <div class="role-options" id="role-options"></div>
+                </fieldset>
+                <fieldset class="control-group">
+                  <legend>
+                    03 <span>Where are you in the rotation?</span>
+                  </legend>
+                  <p class="control-help">
+                    Choose where your role begins. The sample 5–1 lineup rotates
+                    to match; the top row is near the net.
+                  </p>
+                  <div class="rotation-options" id="rotation-options"></div>
+                  <button
+                    class="my-next-rotation"
+                    id="my-next-rotation"
+                    type="button"
+                  >
+                    Preview my next rotation <span aria-hidden="true">↻</span>
+                  </button>
+                </fieldset>
+                <fieldset class="control-group">
+                  <legend>04 <span>Whose serve is it?</span></legend>
+                  <div class="segmented" id="serve-options">
+                    <button type="button" data-serve="ours">
+                      Our team serves</button
+                    ><button type="button" data-serve="theirs">
+                      Other team serves
+                    </button>
+                  </div>
+                  <p class="control-help" id="serve-help"></p>
+                </fieldset>
+                <fieldset class="control-group rule-group">
+                  <legend>05 <span>Which rules?</span></legend>
+                  <select
+                    id="rules-select"
+                    aria-label="Select volleyball rule set"
+                  >
+                    <option value="fivb">FIVB 2025–28</option>
+                    <option value="usav">USA Volleyball 2025–27</option>
+                    <option value="trial">FIVB 2026 competition trial</option>
+                  </select>
+                  <p class="control-help" id="rules-help"></p>
+                </fieldset>
+              </div>
+              <div class="court-panel">
+                <div class="court-panel-header">
+                  <div>
+                    <span class="court-kicker" id="court-kicker"
+                      >OUR SERVE · ROTATION 1</span
+                    >
+                    <h3 id="court-title">Start here. Move here.</h3>
+                  </div>
+                  <span class="court-side-tag" id="court-side-tag"
+                    >Back-row player</span
+                  >
+                </div>
+                <div class="court-stage">
+                  <div class="opponent-strip">
+                    <span>OTHER TEAM</span
+                    ><span class="opponent-dots">●&nbsp; ●&nbsp; ●</span>
+                  </div>
+                  <div class="net-label">NET</div>
+                  <div class="net"></div>
+                  <div class="court" id="court">
+                    <div class="attack-line"></div>
+                    <div class="court-positions" id="court-positions"></div>
+                    <div class="team-players" id="team-players"></div>
+                    <svg
+                      class="movement-svg"
+                      id="movement-svg"
+                      viewBox="0 0 1000 1000"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
+                      <defs>
+                        <marker
+                          id="arrowhead"
+                          viewBox="0 0 12 12"
+                          refX="10"
+                          refY="6"
+                          markerWidth="12"
+                          markerHeight="12"
+                          orient="auto"
+                        >
+                          <path d="M 0 0 L 12 6 L 0 12 z" fill="#ee714e" />
+                        </marker>
+                      </defs>
+                      <path
+                        id="movement-path"
+                        d=""
+                        fill="none"
+                        stroke="#ee714e"
+                        stroke-width="7"
+                        stroke-linecap="round"
+                        stroke-dasharray="11 12"
+                        marker-end="url(#arrowhead)"
+                      />
+                    </svg>
+                    <div class="target-token" id="target-token">
+                      <span id="target-token-text">S</span>
+                    </div>
+                    <div class="start-token" id="start-token">
+                      <span id="start-token-text">1</span>
+                    </div>
+                  </div>
+                  <div class="baseline-label">BASELINE</div>
+                  <div class="server-area" id="server-area">
+                    <span id="server-marker">●</span><span>SERVER</span>
+                  </div>
+                </div>
+                <div class="court-legend">
+                  <span
+                    ><i class="legend-dot legend-start"></i> Previous spot</span
+                  ><span><i class="legend-dot legend-target"></i> You now</span
+                  ><span><i class="legend-line"></i> Your path</span>
+                </div>
+                <div class="rotation-key" aria-label="Numbered court positions">
+                  <span><b>4</b> left front</span
+                  ><span><b>3</b> middle front</span
+                  ><span><b>2</b> right front</span
+                  ><span><b>5</b> left back</span
+                  ><span><b>6</b> middle back</span
+                  ><span><b>1</b> right back</span>
+                </div>
+                <div
+                  class="timeline"
+                  id="timeline"
+                  aria-label="Steps through the play"
+                ></div>
+              </div>
+            </div>
+            <div class="instruction-panel" aria-live="polite">
+              <div class="instruction-icon" id="instruction-icon">↗</div>
+              <div>
+                <span class="instruction-kicker" id="instruction-kicker"
+                  >YOUR NEXT MOVE</span
+                >
+                <h3 id="instruction-title"></h3>
+                <p id="instruction-body"></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="roles-section section-wrap"
+          id="roles"
+          aria-labelledby="roles-title"
+        >
+          <div class="section-heading">
+            <div>
+              <span class="kicker">03 / Meet the lineup</span>
+              <h2 id="roles-title">Your team, role by role.</h2>
+            </div>
+            <p>Tap a role to put it on the court above.</p>
+          </div>
+          <div class="roles-grid" id="roles-grid"></div>
+          <p class="roles-footnote">
+            Teams can use different systems. This guide shows beginner-friendly
+            base positions; ask your coach or teammates how your team arranges
+            its passers and blockers.
+          </p>
+          <div class="glossary">
+            <div>
+              <span class="kicker">WORDS YOU'LL HEAR</span>
+              <h3>Volleyball, in plain English.</h3>
+            </div>
+            <div class="glossary-grid">
+              <p>
+                <strong>Pass / receive</strong> Control a serve or easy ball
+                toward the setter.
+              </p>
+              <p>
+                <strong>Dig</strong> Keep an opponent’s attack from hitting the
+                floor.
+              </p>
+              <p><strong>Set</strong> Put up a ball a teammate can hit.</p>
+              <p>
+                <strong>Hit / attack</strong> Send the ball toward the other
+                team to score.
+              </p>
+              <p>
+                <strong>Block</strong> A front-row player stops or slows a hit
+                at the net.
+              </p>
+              <p>
+                <strong>Sideout</strong> Win the rally while receiving; now you
+                rotate and serve.
+              </p>
+              <p>
+                <strong>Stack</strong> Start close to your playing job while
+                keeping the required rotation order.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="rules-section" id="rules" aria-labelledby="rules-title">
+          <div class="section-wrap">
+            <div class="section-heading">
+              <div>
+                <span class="kicker">04 / Play by the right rules</span>
+                <h2 id="rules-title">The small print, made useful.</h2>
+              </div>
+              <p>Checked against official sources on 13 October 2026.</p>
+            </div>
+            <div class="rules-layout">
+              <div class="rule-callout">
+                <span class="callout-symbol">!</span>
+                <h3>One important difference</h3>
+                <p>
+                  Under <strong>FIVB 2025–28</strong>, the serving team can
+                  stand freely at the serve. The receiving team must keep its
+                  rotation relationships until serve contact. Under
+                  <strong>USA Volleyball 2025–27</strong>, both teams keep those
+                  relationships until serve contact. A
+                  <strong>2026 FIVB trial</strong> used at specified
+                  competitions lets receivers move when the server begins the
+                  serving motion, after being correctly positioned at the
+                  whistle.
+                </p>
+                <p>
+                  That trial is not automatically your local league’s rule.
+                  Choose the rulebook your competition uses.
+                </p>
+              </div>
+              <div class="rule-facts">
+                <article>
+                  <span>01</span>
+                  <div>
+                    <h3>Front row / back row</h3>
+                    <p>
+                      Spots 4, 3, 2 are front row. Spots 5, 6, 1 are back row.
+                      Your rotation row still controls who may block or attack
+                      above the net from in front of the attack line, even after
+                      you move.
+                    </p>
+                  </div>
+                </article>
+                <article>
+                  <span>02</span>
+                  <div>
+                    <h3>Libero and substitutions</h3>
+                    <p>
+                      The libero plays in the back row and cannot complete a
+                      block or an attack with the ball fully above the net. FIVB
+                      forbids libero serving; USA Volleyball permits one service
+                      position per set.
+                    </p>
+                  </div>
+                </article>
+                <article>
+                  <span>03</span>
+                  <div>
+                    <h3>2026 rule updates</h3>
+                    <p>
+                      USA Volleyball now permits a double contact on the second
+                      team touch when a teammate plays it next; a catch or throw
+                      is still a fault. Serving teammates must keep their hands
+                      at or below head height. FIVB's 2026 movement trial
+                      applies only at selected events.
+                    </p>
+                  </div>
+                </article>
+                <article>
+                  <span>04</span>
+                  <div>
+                    <h3>What “attack” means here</h3>
+                    <p>
+                      The app uses “our serve” and “their serve” to avoid
+                      confusion. In volleyball, the receiving team often gets
+                      the first attack; the serving team prepares to defend it.
+                    </p>
+                  </div>
+                </article>
+              </div>
+            </div>
+            <div class="sources">
+              <span>SOURCES</span
+              ><a
+                href="https://www.fivb.com/wp-content/uploads/2025/01/FIVB-Volleyball_Rules2025_2028-EN.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >FIVB Official Rules 2025–28 ↗</a
+              ><a
+                href="https://usavolleyball.org/wp-content/uploads/2023/03/2025-2027-USAV-Indoor-Rules-Book_FINAL.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >USA Volleyball Indoor Rules 2025–27 ↗</a
+              ><a
+                href="https://usavolleyball.org/wp-content/uploads/2026/01/2026-Rules-Interp-1.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >USA Volleyball 2026 update ↗</a
+              ><a
+                href="https://en.volleyballworld.com/news/fivb-board-of-administration-approves-rule-tests-for-2026-competitions"
+                target="_blank"
+                rel="noopener noreferrer"
+                >FIVB 2026 trial announcement ↗</a
+              ><a
+                href="https://www.fivb.com/wp-content/uploads/2024/03/FIVB_Coach_Manual_EN.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >FIVB Coaches Manual ↗</a
+              >
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <span class="brand">◒ sideout<span class="brand-dot">.</span></span
+        ><span>A little more confidence, one rotation at a time.</span
+        ><a href="#top">Back to top ↑</a>
+      </footer>
+    </div>
+    <script src="./i18n.js" defer></script>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
