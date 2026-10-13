@@ -127,18 +127,9 @@ const positions = {
   1: { x: 82, y: 75, label: "Back right" },
 };
 
-const nextPosition = { 1: 6, 6: 5, 5: 4, 4: 3, 3: 2, 2: 1 };
-const previousPosition = Object.fromEntries(
-  Object.entries(nextPosition).map(([from, to]) => [to, Number(from)]),
-);
-const exampleStartingLineup = {
-  1: "S",
-  2: "OH1",
-  3: "MB1",
-  4: "OP",
-  5: "OH2",
-  6: "MB2",
-};
+let schemeDatabase = null;
+let nextPosition = null;
+let previousPosition = null;
 const exampleNames = {
   S: "Setter",
   OH1: "Outside hitter 1",
@@ -205,157 +196,25 @@ const selectedStartingId = {
   ds: "OH2",
 };
 
-function advancePosition(spot, turns) {
-  for (let i = 0; i < turns; i++) spot = nextPosition[spot];
-  return spot;
-}
-
 function activeLineup() {
   const anchor = selectedStartingId[state.role];
-  const anchorStart = Number(
-    Object.keys(exampleStartingLineup).find(
-      (spot) => exampleStartingLineup[spot] === anchor,
-    ),
+  const rotation = schemeDatabase.rotationOrder.find((number) =>
+    schemeDatabase.rotations[number][state.position] === anchor,
   );
-  let turns = 0;
-  while (advancePosition(anchorStart, turns) !== state.position) turns++;
-  const bySlot = {};
-  for (const [slot, id] of Object.entries(exampleStartingLineup)) {
-    bySlot[advancePosition(Number(slot), turns)] = id;
-  }
-
-  let selected = {
-    setter: "S",
-    outside: "OH1",
-    opposite: "OP",
-    middle: "MB1",
-    middle2: "MB2",
-    libero: "L",
-    ds: "DS",
+  if (rotation === undefined) throw new Error(`No verified rotation for ${state.role} in ${state.position}`);
+  const variant = `${state.lineup}${state.role === "ds" ? "-ds" : ""}`;
+  const scenario = schemeDatabase.scenarios[variant][state.serve][state.rules][rotation];
+  const candidate = {
+    setter: "S", outside: "OH1", opposite: "OP", middle: "MB1",
+    middle2: "MB2", libero: "L", ds: "DS",
   }[state.role];
-  if (state.role === "ds") {
-    bySlot[state.position] = "DS";
-  }
-  if (state.lineup === "libero") {
-    for (const slot of [1, 5, 6]) {
-      const middleId = bySlot[slot];
-      if (!middleId?.startsWith("MB")) continue;
-      const mayServe = state.serve === "ours" && slot === 1 &&
-        (state.rules !== "usav" || middleId === "MB2");
-      if (!mayServe) bySlot[slot] = "L";
-    }
-  }
-  if (state.role === "libero" && invalidLibero()) selected = null;
-  if (middleOffCourt()) selected = null;
-  return { bySlot, turns, selected };
-}
-
-function playingPosition(id, slot, phase) {
-  const front = [2, 3, 4].includes(Number(slot));
-  if (phase === "receive") {
-    if (id === "S") return { x: 68, y: 27 };
-    if (id === "OH1") return { x: 20, y: 67 };
-    if (id === "OH2") return { x: 80, y: 67 };
-    if (id === "OP") return front ? { x: 87, y: 34 } : { x: 88, y: 84 };
-    if (id.startsWith("MB")) return front ? { x: 49, y: 24 } : { x: 50, y: 76 };
-    if (id === "DS" && front) return { x: 49, y: 47 };
-    return { x: 50, y: 73 };
-  }
-  if (phase === "attack") {
-    if (id === "S") return { x: 68, y: 27 };
-    if (id.startsWith("OH")) return front ? { x: 18, y: 34 } : { x: 20, y: 78 };
-    if (id === "OP") return front ? { x: 87, y: 34 } : { x: 87, y: 78 };
-    if (id.startsWith("MB")) return front ? { x: 49, y: 26 } : { x: 50, y: 78 };
-    if (id === "DS" && front) return { x: 48, y: 48 };
-    return { x: 50, y: 78 };
-  }
-  if (id === "S") return front ? { x: 82, y: 27 } : { x: 82, y: 77 };
-  if (id.startsWith("OH")) return front ? { x: 18, y: 29 } : { x: 20, y: 77 };
-  if (id === "OP") return front ? { x: 86, y: 31 } : { x: 86, y: 78 };
-  if (id.startsWith("MB")) return front ? { x: 50, y: 25 } : { x: 50, y: 76 };
-  if (id === "DS" && front) return { x: 49, y: 45 };
-  return { x: 50, y: 76 };
-}
-
-function legalStack(bySlot) {
-  const phase = state.serve === "ours" ? "defense" : "receive";
-  const layout = {};
-  for (const row of [
-    [4, 3, 2],
-    [5, 6, 1],
-  ]) {
-    const xs = row.map((slot) => {
-      const desired = playingPosition(bySlot[slot], slot, phase);
-      layout[bySlot[slot]] = {
-        x: positions[slot].x + 0.45 * (desired.x - positions[slot].x),
-        y: positions[slot].y + 0.4 * (desired.y - positions[slot].y),
-      };
-      return layout[bySlot[slot]].x;
-    });
-    for (let i = 1; i < 3; i++) xs[i] = Math.max(xs[i], xs[i - 1] + 9);
-    if (xs[2] > 92) {
-      const shift = xs[2] - 92;
-      xs.forEach((_, i) => {
-        xs[i] -= shift;
-      });
-    }
-    if (xs[0] < 8) {
-      const shift = 8 - xs[0];
-      xs.forEach((_, i) => {
-        xs[i] += shift;
-      });
-    }
-    row.forEach((slot, i) => {
-      layout[bySlot[slot]].x = xs[i];
-    });
-  }
-  for (const [frontSlot, backSlot] of [
-    [4, 5],
-    [3, 6],
-    [2, 1],
-  ]) {
-    const front = layout[bySlot[frontSlot]];
-    const back = layout[bySlot[backSlot]];
-    front.y = Math.min(front.y, 58);
-    back.y = Math.min(91, Math.max(back.y, front.y + 13));
-  }
-  return layout;
-}
-
-function stageLayout(step, bySlot) {
-  // First show the numbered rotation before any tactical switch. In R1 the
-  // opposite is in 4 when the setter serves from 1, even if they later move to 2.
-  if (step === 0) {
-    const layout = Object.fromEntries(
-      Object.entries(bySlot).map(([slot, id]) => [id, { ...positions[slot] }]),
-    );
-    if (state.serve === "ours") layout[bySlot[1]] = { x: 82, y: 109 };
-    return layout;
-  }
-  let phase;
-  if (step === 4) phase = "defense";
-  else if (step === 3) phase = "attack";
-  else if (
-    step === 2 ||
-    (step === 1 && state.serve === "theirs" && state.rules === "trial")
-  ) {
-    phase = state.serve === "ours" ? "defense" : "receive";
-  } else if (state.serve === "ours" && state.rules !== "usav") {
-    phase = "defense";
-  } else {
-    phase = "stack";
-  }
-  const layout =
-    phase === "stack"
-      ? legalStack(bySlot)
-      : Object.fromEntries(
-          Object.entries(bySlot).map(([slot, id]) => [
-            id,
-            playingPosition(id, slot, phase),
-          ]),
-        );
-  if (state.serve === "ours" && step < 2) layout[bySlot[1]] = { x: 82, y: 109 };
-  return layout;
+  const selected = Object.values(scenario.bySlot).includes(candidate) ? candidate : null;
+  return {
+    bySlot: scenario.bySlot,
+    steps: scenario.steps,
+    turns: schemeDatabase.rotationOrder.indexOf(rotation),
+    selected,
+  };
 }
 
 function timingText() {
@@ -536,12 +395,12 @@ function renderOptions() {
 
 function renderCourt() {
   const team = activeLineup();
-  const current = stageLayout(state.step, team.bySlot);
+  const current = team.steps[state.step].positions;
   const selected = team.selected;
   const previous =
     state.step === 0
       ? selected ? { [selected]: { ...positions[state.position] } } : {}
-      : stageLayout(state.step - 1, team.bySlot);
+      : team.steps[state.step - 1].positions;
   $("court-positions").innerHTML = Object.entries(positions)
     .map(
       ([number, pos]) =>
@@ -683,6 +542,7 @@ function renderTeam() {
 }
 
 function render() {
+  if (!schemeDatabase) return;
   translateStatic(state.lang);
   renderOptions();
   renderCourt();
@@ -736,16 +596,19 @@ $("rules-select").addEventListener("change", (event) => {
   render();
 });
 $("my-next-rotation").addEventListener("click", () => {
+  if (!nextPosition) return;
   state.position = nextPosition[state.position];
   state.step = 0;
   render();
 });
 $("team-next").addEventListener("click", () => {
+  if (!nextPosition) return;
   state.position = nextPosition[state.position];
   state.step = 0;
   render();
 });
 $("team-prev").addEventListener("click", () => {
+  if (!previousPosition) return;
   state.position = previousPosition[state.position];
   state.step = 0;
   render();
@@ -781,4 +644,21 @@ mobileNavigation.addEventListener("change", (event) => {
   $("player-navigation").open = !event.matches;
 });
 
-render();
+fetch("./data/schemes.json")
+  .then((response) => {
+    if (!response.ok) throw new Error(`Court database returned ${response.status}`);
+    return response.json();
+  })
+  .then((database) => {
+    if (database.schemaVersion !== 1) throw new Error("Unsupported court database version");
+    schemeDatabase = database;
+    nextPosition = database.nextPosition;
+    previousPosition = Object.fromEntries(
+      Object.entries(nextPosition).map(([from, to]) => [to, Number(from)]),
+    );
+    render();
+  })
+  .catch((error) => {
+    console.error(error);
+    $("court-title").textContent = "Court data could not load / Impossibile caricare i dati del campo";
+  });
