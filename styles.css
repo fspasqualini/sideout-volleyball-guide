@@ -1365,6 +1365,14 @@ h1 em {
   color: var(--ink);
   margin-right: 3px;
 }
+.rotation-relationship {
+  margin: 10px auto 0;
+  max-width: 820px;
+  color: #718078;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
 .glossary {
   border-top: 1px solid var(--line);
   margin-top: 52px;

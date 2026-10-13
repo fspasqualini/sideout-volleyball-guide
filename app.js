@@ -323,6 +323,15 @@ function legalStack(bySlot) {
 }
 
 function stageLayout(step, bySlot) {
+  // First show the numbered rotation before any tactical switch. In R1 the
+  // opposite is in 4 when the setter serves from 1, even if they later move to 2.
+  if (step === 0) {
+    const layout = Object.fromEntries(
+      Object.entries(bySlot).map(([slot, id]) => [id, { ...positions[slot] }]),
+    );
+    if (state.serve === "ours") layout[bySlot[1]] = { x: 82, y: 109 };
+    return layout;
+  }
   let phase;
   if (step === 4) phase = "defense";
   else if (step === 3) phase = "attack";
@@ -384,22 +393,24 @@ function stepCopy() {
     if (isServer())
       return {
         title: copy("Start behind the baseline to serve.", "Parti dietro la linea di fondo per battere."),
-        body: state.lang === "it"
-          ? `Sei in posizione 1. Gli altri cinque giocatori prendono la ${state.rules === "usav" ? "disposizione iniziale regolare" : "posizione difensiva"} mostrata. Resti un giocatore di seconda linea per tutto lo scambio.`
-          : `You are in position 1. The other five players take the shown ${state.rules === "usav" ? "legal stack" : "defensive shape"}. You remain a back-row player throughout this rally.`,
+        body: copy(
+          "You are in rotation position 1; the other five are shown in their numbered rotation spots. The opposite is in 4, across the rotation from you. You remain a back-row player for this rally.",
+          "Sei in posizione di rotazione 1; gli altri cinque sono nelle loro posizioni numerate. L'Opposto è in zona 4, opposto a te nella rotazione. Resti un giocatore di seconda linea per tutto lo scambio.",
+        ),
       };
     if (state.serve === "ours" && state.rules !== "usav")
       return {
-        title: copy("Set up in your defensive shape.", "Prendi la tua posizione difensiva."),
-        body: state.lang === "it"
-          ? `Secondo la FIVB, la squadra in battuta può spostarsi prima del servizio. Il battitore giusto resta dietro la linea di fondo. Per tutto lo scambio sei un giocatore di ${row}.`
-          : `Under FIVB rules, the serving team can switch before the serve. The correct server stays behind the baseline. You are a ${row} player throughout this rally.`,
+        title: copy("Start in your rotation spot.", "Parti dalla tua posizione di rotazione."),
+        body: copy(
+          `This view shows the numbered rotation: you are in position ${state.position}. Under FIVB rules, the serving team may switch before contact; the next moment shows that defensive shape. You remain a ${row} player for the rally.`,
+          `Questa vista mostra la rotazione numerata: sei in posizione ${state.position}. Secondo la FIVB, la squadra in battuta può spostarsi prima del contatto; il passo successivo mostra la difesa. Resti un giocatore di ${row} per tutto lo scambio.`,
+        ),
       };
     return {
-      title: copy("Take your legal stack.", "Prendi la disposizione iniziale regolare."),
+      title: copy("Start in your rotation spot.", "Parti dalla tua posizione di rotazione."),
       body: state.lang === "it"
-        ? `Parti vicino alla zona del tuo ruolo, mantenendo l'ordine richiesto da sinistra a destra e da davanti a dietro. La tua posizione è ${state.position} (${positionLabel(state.position)}). Per la regolarità contano i piedi, non i simboli del disegno.`
-        : `A stack puts teammates close to their next jobs while keeping the required left-to-right and front-to-back order. You begin in position ${state.position} (${positions[state.position].label.toLowerCase()}). Actual foot placement determines legality.`,
+        ? `Questa vista mostra la rotazione numerata: sei in posizione ${state.position} (${positionLabel(state.position)}). Nel passo successivo puoi avvicinarti alla zona di gioco, rispettando l'ordine richiesto fino al momento previsto dalle regole.`
+        : `This view shows the numbered rotation: you are in position ${state.position} (${positions[state.position].label.toLowerCase()}). In the next moment, you can stack closer to your playing area while keeping the required order until the rules allow you to move.`,
     };
   }
   if (state.step === 1) {
@@ -592,20 +603,26 @@ function renderCourt() {
     .filter((id) => onCourt.has(id))
     .map((id) => `<span><b>${markerLabel(id)}</b> ${playerName(id)}</span>`)
     .join("");
+  const setterSpot = Number(Object.keys(team.bySlot).find((slot) => team.bySlot[slot] === "S"));
+  const oppositeSpot = Number(Object.keys(team.bySlot).find((slot) => team.bySlot[slot] === "OP"));
+  $("rotation-relationship").textContent = copy(
+    `Rotation spots: setter ${setterSpot}, opposite ${oppositeSpot}. Players can move to their playing areas when the rules allow.`,
+    `Posizioni di rotazione: palleggiatore ${setterSpot}, opposto ${oppositeSpot}. I giocatori si spostano nelle zone di gioco quando le regole lo permettono.`,
+  );
 }
 
 function renderTimeline() {
   const titles =
     state.serve === "ours"
       ? [
-          copy("Legal start", "Partenza regolare"),
+          copy("Rotation spots", "Posizioni di rotazione"),
           copy("Serve contact", "Contatto con la battuta"),
           copy("Defend return", "Difendi la risposta"),
           copy("Build attack", "Costruisci l'attacco"),
           copy("Defend again", "Torna in difesa"),
         ]
       : [
-          copy("Legal stack", "Disposizione regolare"),
+          copy("Rotation spots", "Posizioni di rotazione"),
           state.rules === "trial" ? copy("Serving motion", "Gesto di battuta") : copy("Serve contact", "Contatto con la battuta"),
           copy("Pass the serve", "Ricevi la battuta"),
           copy("Build attack", "Costruisci l'attacco"),
