@@ -252,10 +252,15 @@ function stepCopy() {
     if (isServer())
       return {
         title: copy("Start behind the baseline to serve.", "Parti dietro la linea di fondo per battere."),
-        body: copy(
-          "You are in rotation position 1; the other five are shown in their numbered rotation spots. The opposite is in 4, across the rotation from you. You remain a back-row player for this rally.",
-          "Sei in posizione di rotazione 1; gli altri cinque sono nelle loro posizioni numerate. L'Opposto è in zona 4, opposto a te nella rotazione. Resti un giocatore di seconda linea per tutto lo scambio.",
-        ),
+        body: state.role === "setter"
+          ? copy(
+            "You are in rotation position 1; the other five are shown in their numbered rotation spots. The opposite is in 4, across the rotation from you. You remain a back-row player for this rally.",
+            "Sei in posizione di rotazione 1; gli altri cinque sono nelle loro posizioni numerate. L'Opposto è in zona 4, opposto a te nella rotazione. Resti un giocatore di seconda linea per tutto lo scambio.",
+          )
+          : copy(
+            "You are in rotation position 1; the other five are shown in their numbered rotation spots. You remain a back-row player for this rally.",
+            "Sei in posizione di rotazione 1; gli altri cinque sono nelle loro posizioni numerate. Resti un giocatore di seconda linea per tutto lo scambio.",
+          ),
       };
     if (state.serve === "ours" && state.rules !== "usav")
       return {
