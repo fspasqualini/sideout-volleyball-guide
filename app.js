@@ -481,10 +481,19 @@ function renderOptions() {
       button.setAttribute("aria-pressed", String(active));
     });
   }
+  document.querySelectorAll("[data-focus]").forEach((button) => {
+    const active = button.dataset.focus === (state.step === 3 ? "attack" : state.step === 4 ? "defense" : "");
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
   $("lineup-help").textContent = state.lineup === "libero"
-    ? copy("One libero replaces the back-row middle between rallies. In this example, FIVB middles serve their own turn; under USA Volleyball, the libero serves for Middle 1 only.", "Un Libero sostituisce il centrale di seconda linea tra uno scambio e l'altro. In questo esempio, con la FIVB i centrali battono nel proprio turno; con USA Volleyball il Libero batte solo al posto del Centrale 1.")
-    : copy("Both middle blockers stay on court, including the middle in the back row. They receive, defend, and serve like regular players.", "Entrambi i centrali restano in campo, anche quello in seconda linea. Ricevono, difendono e battono come gli altri giocatori.");
+    ? copy("Libero replaces the back-row middle between rallies.", "Il Libero sostituisce il centrale di seconda linea tra gli scambi.")
+    : copy("Both middles stay on court, including in the back row.", "Entrambi i centrali restano in campo, anche in seconda linea.");
   $("lineup-options").setAttribute("aria-label", copy("Choose a 5–1 lineup", "Scegli la formazione 5–1"));
+  $("player-selection-summary").textContent = `${roleInfo(state.role).name} · ${copy("position", "posizione")} ${state.position}`;
+  $("focus-options").setAttribute("aria-label", copy("Choose attack or defense view", "Scegli vista attacco o difesa"));
+  document.querySelector(".setup-bar").setAttribute("aria-label", copy("General game settings", "Impostazioni generali di gioco"));
+  document.querySelector(".controls-panel").setAttribute("aria-label", copy("Player navigation", "Scelte del giocatore"));
   $("serve-options").setAttribute("aria-label", copy("Whose serve", "Chi batte"));
   $("rules-select").setAttribute("aria-label", copy("Select volleyball rule set", "Scegli il regolamento di pallavolo"));
   $("timeline").setAttribute("aria-label", copy("Steps through the play", "Passi dello scambio"));
@@ -674,6 +683,10 @@ document.addEventListener("click", (event) => {
     state.lang = button.dataset.lang;
     render();
   }
+  if (button.dataset.focus) {
+    state.step = button.dataset.focus === "attack" ? 3 : 4;
+    render();
+  }
   if (button.dataset.position) {
     state.position = Number(button.dataset.position);
     render();
@@ -730,6 +743,12 @@ $("share-button").addEventListener("click", async () => {
   setTimeout(() => {
     button.innerHTML = `${copy("Share this view", "Condividi questa vista")} <span aria-hidden="true">↗</span>`;
   }, 2400);
+});
+
+const mobileNavigation = window.matchMedia("(max-width: 780px)");
+$("player-navigation").open = !mobileNavigation.matches;
+mobileNavigation.addEventListener("change", (event) => {
+  $("player-navigation").open = !event.matches;
 });
 
 render();
