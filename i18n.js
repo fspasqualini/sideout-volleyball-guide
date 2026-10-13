@@ -30,7 +30,7 @@ const staticItalian = {
   "One sideout. Six new spots.": "Un cambio palla. Sei nuove posizioni.",
   "Here is a sample": "Ecco una squadra d'esempio con schema",
   "5–1 team": "5–1",
-  ": one setter, two outsides, one opposite, and two middles. Tap “Next sideout” to move all six starters one spot clockwise. The Libero option below changes who plays in the back row.": ": un palleggiatore, due schiacciatori, un opposto e due centrali. Tocca «Cambio palla» per far ruotare i sei titolari di una posizione. L'opzione Libero qui sotto cambia chi gioca in seconda linea.",
+  ": one setter, two outsides, one opposite, and two middles. Tap “Next sideout” to move all six starters one spot clockwise. The Libero option below changes who plays in the back row.": ": un palleggiatore, due bande, un opposto e due centrali. Tocca «Cambio palla» per far ruotare i sei titolari di una posizione. L'opzione Libero qui sotto cambia chi gioca in seconda linea.",
   "ROTATION 1 OF 6": "ROTAZIONE 1 DI 6",
   "Next sideout": "Cambio palla",
   "NET · FRONT ROW NEAREST": "RETE · PRIMA LINEA VICINA",
@@ -148,7 +148,7 @@ const roleItalian = {
     receiveBack: "Quando arriva la battuta, spostati dalla tua posizione verso zona 2. Un compagno riceve; tu alzi la seconda palla.",
   },
   outside: {
-    name: "Schiacciatore",
+    name: "Banda",
     intro: "Attacca da sinistra, spesso riceve la battuta e mura sul lato sinistro.",
     front: "Vai verso zona 4. Se ricevi, passa la palla e poi preparati alla rincorsa d'attacco.",
     back: "Copri la ricezione in zona 5 e difendi le palle dirette sul tuo lato.",
@@ -159,7 +159,7 @@ const roleItalian = {
   },
   opposite: {
     name: "Opposto",
-    intro: "Attacca da destra e spesso mura lo schiacciatore avversario.",
+    intro: "Attacca da destra e spesso mura la banda avversaria.",
     front: "Vai in zona 2 per attaccare e murare. Lascia libero il percorso del palleggiatore.",
     back: "Difendi in zona 1. Per attaccare sopra la rete da seconda linea, stacca da dietro la linea dei tre metri.",
     serveFront: "Vai in zona 2 per murare l'attacco da sinistra degli avversari. Attento alle palle corte dietro il muro.",

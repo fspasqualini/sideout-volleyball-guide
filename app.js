@@ -147,11 +147,16 @@ const exampleNames = {
   MB2: "Middle blocker 2",
   OP: "Opposite",
 };
+const italianMarkerLabels = {
+  S: "P", OH1: "B1", OH2: "B2", MB1: "C1", MB2: "C2",
+  OP: "O", L: "L", DS: "SD",
+};
+const markerLabel = (id) => state.lang === "it" ? italianMarkerLabels[id] : id;
 function playerName(id) {
   if (id === "L") return "Libero";
   if (id === "DS") return copy("Defensive specialist", "Specialista difensivo");
   const italian = {
-    S: "Palleggiatore", OH1: "Schiacciatore 1", OH2: "Schiacciatore 2",
+    S: "Palleggiatore", OH1: "Banda 1", OH2: "Banda 2",
     MB1: "Centrale 1", MB2: "Centrale 2", OP: "Opposto",
   };
   return state.lang === "it" ? italian[id] : exampleNames[id];
@@ -465,7 +470,7 @@ function renderOptions() {
   $("role-options").innerHTML = visibleRoles().map((key) => [key, roleInfo(key)])
     .map(
       ([key, role]) =>
-        `<button type="button" class="role-option ${state.role === key ? "active" : ""}" data-role="${key}" aria-pressed="${state.role === key}">${key === "outside" ? copy("Outside", "Schiacciatore") : key === "middle" ? copy("Middle 1", "Centrale 1") : key === "middle2" ? copy("Middle 2", "Centrale 2") : key === "opposite" ? copy("Opposite", "Opposto") : key === "ds" ? "DS" : role.name}</button>`,
+        `<button type="button" class="role-option ${state.role === key ? "active" : ""}" data-role="${key}" aria-pressed="${state.role === key}">${key === "outside" ? copy("Outside", "Banda") : key === "middle" ? copy("Middle 1", "Centrale 1") : key === "middle2" ? copy("Middle 2", "Centrale 2") : key === "opposite" ? copy("Opposite", "Opposto") : key === "ds" ? copy("DS", "SD") : role.name}</button>`,
     )
     .join("");
   $("rotation-options").innerHTML = [4, 3, 2, 5, 6, 1]
@@ -498,6 +503,7 @@ function renderOptions() {
   $("rules-select").setAttribute("aria-label", copy("Select volleyball rule set", "Scegli il regolamento di pallavolo"));
   $("timeline").setAttribute("aria-label", copy("Steps through the play", "Passi dello scambio"));
   document.querySelector(".rotation-key").setAttribute("aria-label", copy("Numbered court positions", "Posizioni numerate del campo"));
+  $("player-key").setAttribute("aria-label", copy("Player marker abbreviations", "Abbreviazioni dei giocatori sul campo"));
   document.querySelector(".site-nav").setAttribute("aria-label", copy("Main navigation", "Navigazione principale"));
   document.querySelector(".brand").setAttribute("aria-label", copy("Sideout home", "Sideout, inizio pagina"));
   $("team-prev").setAttribute("aria-label", copy("Previous rotation", "Rotazione precedente"));
@@ -535,7 +541,7 @@ function renderCourt() {
     .filter(([id]) => id !== selected)
     .map(
       ([id, point]) =>
-        `<div class="team-player" style="left:${point.x}%;top:${point.y}%" aria-label="${playerName(id)}">${id}</div>`,
+        `<div class="team-player" style="left:${point.x}%;top:${point.y}%" aria-label="${playerName(id)}" title="${playerName(id)}">${markerLabel(id)}</div>`,
     )
     .join("");
   const destination = selected ? current[selected] : null;
@@ -550,7 +556,9 @@ function renderCourt() {
   if (destination) {
     $("target-token").style.left = `${destination.x}%`;
     $("target-token").style.top = `${destination.y}%`;
-    $("target-token-text").textContent = selected;
+    $("target-token-text").textContent = markerLabel(selected);
+    $("target-token").setAttribute("aria-label", playerName(selected));
+    $("target-token").title = playerName(selected);
   }
   if (origin) {
     $("start-token").style.left = `${origin.x}%`;
@@ -579,6 +587,11 @@ function renderCourt() {
     : middleOffCourt()
       ? copy("Libero on court · middle off court", "Libero in campo · centrale fuori")
       : `${roleInfo(state.role).name} · ${positionLabel(state.position)}`;
+  const onCourt = new Set(Object.values(team.bySlot));
+  $("player-key").innerHTML = ["S", "OH1", "OH2", "MB1", "MB2", "OP", "L", "DS"]
+    .filter((id) => onCourt.has(id))
+    .map((id) => `<span><b>${markerLabel(id)}</b> ${playerName(id)}</span>`)
+    .join("");
 }
 
 function renderTimeline() {
@@ -637,7 +650,7 @@ function renderTeam() {
   $("team-grid").innerHTML = [4, 3, 2, 5, 6, 1]
     .map((spot) => {
       const role = lineup[spot];
-      return `<div class="team-cell ${highlighted.includes(role) ? "highlighted" : ""}" aria-label="${copy("Position", "Posizione")} ${spot}, ${positionLabel(spot)}, ${playerName(role)}"><span class="team-cell-position">${copy("POSITION", "POSIZIONE")} ${spot}</span><strong>${role}</strong><small>${playerName(role)}</small></div>`;
+      return `<div class="team-cell ${highlighted.includes(role) ? "highlighted" : ""}" aria-label="${copy("Position", "Posizione")} ${spot}, ${positionLabel(spot)}, ${playerName(role)}"><span class="team-cell-position">${copy("POSITION", "POSIZIONE")} ${spot}</span><strong>${markerLabel(role)}</strong><small>${playerName(role)}</small></div>`;
     })
     .join("");
   $("team-rotation-count").textContent = `${copy("ROTATION", "ROTAZIONE")} ${teamRotation + 1} ${copy("OF", "DI")} 6`;
