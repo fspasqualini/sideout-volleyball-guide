@@ -168,14 +168,43 @@ const state = {
   rules: valid(params.get("rules"), ["fivb", "usav", "trial"], "fivb"),
   step: valid(
     params.has("step") ? Number(params.get("step")) : null,
-    [0, 1, 2, 3, 4],
-    2,
+    [0, 1, 2, 3, 4, 5, 6],
+    0,
   ),
 };
 if (state.lineup !== "libero" && state.role === "libero") state.role = "setter";
 if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "setter";
 
 const $ = (id) => document.getElementById(id);
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const rallyTitles = {
+  rotation: ["Before the serve", "Prima della battuta"],
+  serve: ["Our serve", "La nostra battuta"],
+  "opponent-attack": ["Their attack", "Attacco avversario"],
+  dig: ["Our dig", "La nostra difesa"],
+  set: ["Our set", "La nostra alzata"],
+  attack: ["Our attack", "Il nostro attacco"],
+  reset: ["Back to defense", "Torna in difesa"],
+  pass: ["Serve pass", "Ricezione della battuta"],
+};
+let playhead = state.step;
+let playing = false;
+let lastFrameTime = 0;
+let animationFrame = 0;
+const phases = () => schemeDatabase.rallyPhases[state.serve];
+const phaseTitle = (phase) => phase.key === "serve" && state.serve === "theirs"
+  ? copy("Their serve", "Battuta avversaria")
+  : rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
+function phasePositions(team, phase) {
+  if (!phase.mix) return team.steps[phase.view].positions;
+  const [from, to, fraction] = phase.mix;
+  const start = team.steps[from].positions;
+  const end = team.steps[to].positions;
+  return Object.fromEntries(Object.keys(start).map((id) => [id, {
+    x: start[id].x + (end[id].x - start[id].x) * fraction,
+    y: start[id].y + (end[id].y - start[id].y) * fraction,
+  }]));
+}
 const positionLabel = (spot) => copy(positions[spot].label.toLowerCase(), {
   4: "davanti a sinistra", 3: "davanti al centro", 2: "davanti a destra",
   5: "dietro a sinistra", 6: "dietro al centro", 1: "dietro a destra",
@@ -410,7 +439,7 @@ function renderOptions() {
     });
   }
   document.querySelectorAll("[data-focus]").forEach((button) => {
-    const active = button.dataset.focus === (state.step === 3 ? "attack" : state.step === 4 ? "defense" : "");
+    const active = button.dataset.focus === (phases()[state.step].key === "attack" ? "attack" : phases()[state.step].key === "reset" ? "defense" : "");
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
@@ -450,54 +479,25 @@ function renderOptions() {
 
 function renderCourt() {
   const team = activeLineup();
-  const current = team.steps[state.step].positions;
   const selected = team.selected;
-  const previous =
-    state.step === 0
-      ? selected ? { [selected]: { ...positions[state.position] } } : {}
-      : team.steps[state.step - 1].positions;
   $("court-positions").innerHTML = Object.entries(positions)
     .map(
       ([number, pos]) =>
         `<div class="position-ghost ${Number(number) === state.position ? "selected" : ""}" style="left:${pos.x}%;top:${pos.y}%" aria-hidden="true">${number}</div>`,
     )
     .join("");
-  $("team-players").innerHTML = Object.entries(current)
+  $("team-players").innerHTML = Object.entries(team.steps[0].positions)
     .filter(([id]) => id !== selected)
     .map(
-      ([id, point]) =>
-        `<div class="team-player" style="left:${point.x}%;top:${point.y}%" aria-label="${playerName(id)}" title="${playerName(id)}">${markerLabel(id)}</div>`,
+      ([id]) =>
+        `<div class="team-player" data-player="${id}" aria-label="${playerName(id)}" title="${playerName(id)}">${markerLabel(id)}</div>`,
     )
     .join("");
-  const destination = selected ? current[selected] : null;
-  const origin = selected ? previous[selected] : null;
-  const moving =
-    origin &&
-    destination &&
-    Math.hypot(destination.x - origin.x, destination.y - origin.y) >= 7;
-  $("target-token").classList.toggle("hidden", !destination);
-  $("start-token").classList.toggle("hidden", !moving);
-  $("movement-svg").classList.toggle("hidden", !moving);
-  if (destination) {
-    $("target-token").style.left = `${destination.x}%`;
-    $("target-token").style.top = `${destination.y}%`;
+  $("target-token").classList.toggle("hidden", !selected);
+  if (selected) {
     $("target-token-text").textContent = markerLabel(selected);
     $("target-token").setAttribute("aria-label", playerName(selected));
     $("target-token").title = playerName(selected);
-  }
-  if (origin) {
-    $("start-token").style.left = `${origin.x}%`;
-    $("start-token").style.top = `${origin.y}%`;
-    $("start-token").classList.toggle("server", origin.y > 100);
-    $("start-token-text").textContent = state.step === 0 ? state.position : "·";
-  }
-  if (moving) {
-    const dx = destination.x - origin.x;
-    const dy = destination.y - origin.y;
-    $("movement-path").setAttribute(
-      "d",
-      `M ${origin.x * 10} ${origin.y * 10} Q ${(origin.x + dx * 0.32) * 10} ${(origin.y + dy * 0.64) * 10} ${destination.x * 10} ${destination.y * 10}`,
-    );
   }
   $("server-area").style.visibility =
     state.serve === "ours" && state.step < 2 ? "visible" : "hidden";
@@ -526,39 +526,96 @@ function renderCourt() {
     `Rotation spots: setter ${setterSpot}, opposite ${oppositeSpot}. Players can move to their playing areas when the rules allow.`,
     `Posizioni di rotazione: palleggiatore ${setterSpot}, opposto ${oppositeSpot}. I giocatori si spostano nelle zone di gioco quando le regole lo permettono.`,
   );
+  renderPlayhead();
+}
+
+function renderPlayhead() {
+  if (!schemeDatabase) return;
+  const team = activeLineup();
+  const sequence = phases();
+  const fromIndex = Math.min(Math.floor(playhead), sequence.length - 1);
+  const toIndex = Math.min(fromIndex + 1, sequence.length - 1);
+  const fraction = reducedMotion.matches ? 0 : playhead - fromIndex;
+  const from = phasePositions(team, sequence[fromIndex]);
+  const to = phasePositions(team, sequence[toIndex]);
+  const place = (element, point) => {
+    element.style.left = `${point.x}%`;
+    element.style.top = `${point.y}%`;
+  };
+  const interpolate = (a, b) => ({
+    x: a.x + (b.x - a.x) * fraction,
+    y: a.y + (b.y - a.y) * fraction,
+  });
+  document.querySelectorAll("#team-players [data-player]").forEach((marker) => {
+    const id = marker.dataset.player;
+    place(marker, interpolate(from[id], to[id]));
+  });
+  const selected = team.selected;
+  if (selected) place($("target-token"), interpolate(from[selected], to[selected]));
+  const pathIndex = fraction > 0 ? toIndex : fromIndex;
+  const previous = phasePositions(team, sequence[Math.max(0, pathIndex - 1)]);
+  const destination = phasePositions(team, sequence[pathIndex]);
+  const origin = selected && previous[selected];
+  const end = selected && destination[selected];
+  const moving = pathIndex > 0 && origin && end && Math.hypot(end.x - origin.x, end.y - origin.y) > 7;
+  $("start-token").classList.toggle("hidden", !moving);
+  $("movement-svg").classList.toggle("hidden", !moving);
+  if (moving) {
+    place($("start-token"), origin);
+    $("start-token").classList.remove("server");
+    $("start-token-text").textContent = "·";
+    $("movement-path").setAttribute("d", `M ${origin.x * 10} ${origin.y * 10} L ${end.x * 10} ${end.y * 10}`);
+  }
+  const ballByEvent = {
+    rotation: null, serve: { x: 58, y: -5 },
+    "opponent-attack": { x: 54, y: 13 }, dig: { x: 48, y: 70 },
+    pass: { x: 45, y: 66 }, set: { x: 75, y: 22 },
+    attack: { x: 37, y: 9 }, reset: null,
+  };
+  const ball = ballByEvent[sequence[fromIndex].key];
+  $("rally-ball").hidden = !ball;
+  if (ball) place($("rally-ball"), ball);
+  $("rally-scrub").value = String(Math.round(playhead * 100));
+  $("rally-scrub").setAttribute("aria-valuetext", phaseTitle(sequence[fromIndex]));
 }
 
 function renderTimeline() {
-  const titles =
-    state.serve === "ours"
-      ? [
-          copy("Rotation spots", "Posizioni di rotazione"),
-          copy("Serve contact", "Contatto con la battuta"),
-          copy("Defend return", "Difendi la risposta"),
-          copy("Build attack", "Costruisci l'attacco"),
-          copy("Defend again", "Torna in difesa"),
-        ]
-      : [
-          copy("Rotation spots", "Posizioni di rotazione"),
-          state.rules === "trial" ? copy("Serving motion", "Gesto di battuta") : copy("Serve contact", "Contatto con la battuta"),
-          copy("Pass the serve", "Ricevi la battuta"),
-          copy("Build attack", "Costruisci l'attacco"),
-          copy("Defend again", "Torna in difesa"),
-        ];
-  $("timeline").innerHTML = titles
+  const sequence = phases();
+  $("timeline").innerHTML = sequence
     .map(
-      (title, step) =>
-        `<button type="button" class="${state.step === step ? "active" : ""}" data-step="${step}" aria-pressed="${state.step === step}"><span class="step-num">0${step + 1}</span><span class="step-title">${title}</span></button>`,
+      (phase, step) =>
+        `<button type="button" class="${state.step === step ? "active" : ""}" data-step="${step}" aria-pressed="${state.step === step}"><span class="step-num">0${step + 1}</span><span class="step-title">${phaseTitle(phase)}</span></button>`,
     )
     .join("");
+  const phase = sequence[state.step];
+  const originalStep = state.step;
+  state.step = phase.view;
   const instruction = stepCopy();
+  state.step = originalStep;
+  const firstTouch = phase.key === "pass"
+    ? copy("A serve pass starts when the other team serves. Guide that ball toward the setter.", "La ricezione parte dalla battuta avversaria. Indirizza quella palla al palleggiatore.")
+    : phase.key === "dig"
+      ? copy("A dig follows an opponent's attack. Keep the ball alive, then build the next play.", "La difesa segue un attacco avversario. Tieni viva la palla, poi costruisci l'azione successiva.")
+      : "";
+  $("rally-event").textContent = firstTouch || (state.lineup === "open-smart-special" && state.step > 2
+    ? copy("Attack and defense movement is an illustrative adaptation; the coach's 2015 diagrams cover reception only.", "Gli spostamenti di attacco e difesa sono adattamenti illustrativi; gli schemi del coach del 2015 mostrano solo la ricezione.")
+    : copy("All six markers move between checked scheme positions; intermediate motion and the ball are illustrative.", "Tutti e sei i giocatori si spostano tra posizioni verificate; i movimenti intermedi e la palla sono illustrativi."));
   $("instruction-kicker").textContent =
     `${state.lang === "it" ? "PASSO" : "STEP"} 0${state.step + 1} · ${roleInfo(state.role).name.toUpperCase()}`;
-  $("instruction-title").textContent = instruction.title;
-  $("instruction-body").textContent = instruction.body;
+  $("instruction-title").textContent = phaseTitle(phase);
+  $("instruction-body").textContent = `${firstTouch ? `${firstTouch} ` : ""}${instruction.body}`;
   $("instruction-icon").textContent = invalidLibero()
     ? "!"
-    : ["◎", "⇢", "↗", "✦", "↓"][state.step];
+    : ["◎", "⇢", "↗", "✦", "↓", "↗", "↓"][state.step];
+  $("rally-play").textContent = playing ? "❚❚" : "▶";
+  $("rally-play").setAttribute("aria-label", playing ? copy("Pause rally", "Pausa lo scambio") : copy("Play rally", "Avvia lo scambio"));
+  $("rally-back").setAttribute("aria-label", copy("Previous phase", "Fase precedente"));
+  $("rally-next").setAttribute("aria-label", copy("Next phase", "Fase successiva"));
+  $("rally-speed").setAttribute("aria-label", copy("Animation speed", "Velocità dell'animazione"));
+  $("rally-scrub").setAttribute("aria-label", copy("Rally timeline", "Sequenza dello scambio"));
+  document.querySelector(".rally-controls").setAttribute("aria-label", copy("Rally animation controls", "Comandi dell'animazione dello scambio"));
+  $("rally-back").disabled = state.step === 0;
+  $("rally-next").disabled = state.step === sequence.length - 1;
 }
 
 function renderRoles() {
@@ -616,61 +673,119 @@ function render() {
   history.replaceState(null, "", url);
 }
 
+function pauseRally() {
+  playing = false;
+  cancelAnimationFrame(animationFrame);
+  lastFrameTime = 0;
+  if (schemeDatabase) renderTimeline();
+}
+
+function seekRally(value) {
+  pauseRally();
+  playhead = Math.max(0, Math.min(phases().length - 1, value));
+  state.step = Math.floor(playhead);
+  render();
+}
+
+function tickRally(time) {
+  if (!playing) return;
+  if (lastFrameTime) {
+    const speed = Number($("rally-speed").value);
+    playhead = Math.min(phases().length - 1, playhead + (time - lastFrameTime) * speed / 1650);
+    const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
+    if (activeStep !== state.step) {
+      state.step = activeStep;
+      render();
+    } else renderPlayhead();
+    if (playhead >= phases().length - 1) {
+      pauseRally();
+      renderPlayhead();
+      return;
+    }
+  }
+  lastFrameTime = time;
+  animationFrame = requestAnimationFrame(tickRally);
+}
+
+$("rally-play").addEventListener("click", () => {
+  if (playing) { pauseRally(); return; }
+  if (playhead >= phases().length - 1) seekRally(0);
+  playing = true;
+  renderTimeline();
+  animationFrame = requestAnimationFrame(tickRally);
+});
+$("rally-back").addEventListener("click", () => seekRally(state.step - 1));
+$("rally-next").addEventListener("click", () => seekRally(state.step + 1));
+$("rally-scrub").addEventListener("input", (event) => seekRally(Number(event.target.value) / 100));
+reducedMotion.addEventListener("change", () => { pauseRally(); renderPlayhead(); });
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
   if (button.dataset.role) {
+    pauseRally();
     state.role = button.dataset.role;
     render();
   }
   if (button.dataset.lineup) {
+    pauseRally();
     state.lineup = button.dataset.lineup;
     if (state.lineup !== "libero" && state.role === "libero") state.role = "middle";
     if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "outside";
     render();
   }
   if (button.dataset.lang) {
+    pauseRally();
     state.lang = button.dataset.lang;
     render();
   }
   if (button.dataset.focus) {
-    state.step = button.dataset.focus === "attack" ? 3 : 4;
-    render();
+    seekRally(button.dataset.focus === "attack" ? 4 : state.serve === "ours" ? 6 : 5);
   }
   if (button.dataset.position) {
+    pauseRally();
     state.position = Number(button.dataset.position);
     render();
   }
   if (button.dataset.serve) {
+    pauseRally();
     state.serve = button.dataset.serve;
+    state.step = 0;
+    playhead = 0;
     render();
   }
   if (button.dataset.step) {
-    state.step = Number(button.dataset.step);
-    render();
+    seekRally(Number(button.dataset.step));
   }
 });
 
 $("rules-select").addEventListener("change", (event) => {
+  pauseRally();
   state.rules = event.target.value;
   render();
 });
 $("my-next-rotation").addEventListener("click", () => {
+  pauseRally();
   if (!nextPosition) return;
   state.position = nextPosition[state.position];
   state.step = 0;
+  playhead = 0;
   render();
 });
 $("team-next").addEventListener("click", () => {
+  pauseRally();
   if (!nextPosition) return;
   state.position = nextPosition[state.position];
   state.step = 0;
+  playhead = 0;
   render();
 });
 $("team-prev").addEventListener("click", () => {
+  pauseRally();
   if (!previousPosition) return;
   state.position = previousPosition[state.position];
   state.step = 0;
+  playhead = 0;
   render();
 });
 $("share-button").addEventListener("click", async () => {
@@ -710,7 +825,7 @@ fetch("./data/schemes.json")
     return response.json();
   })
   .then((database) => {
-    if (database.schemaVersion !== 1) throw new Error("Unsupported court database version");
+    if (database.schemaVersion !== 2) throw new Error("Unsupported court database version");
     schemeDatabase = database;
     nextPosition = database.nextPosition;
     previousPosition = Object.fromEntries(

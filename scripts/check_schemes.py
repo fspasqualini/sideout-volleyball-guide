@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from build_schemes import COURT_SPOTS, NEXT_POSITION, ROTATION_ORDER, ROOT, source_slots
+from build_schemes import COURT_SPOTS, NEXT_POSITION, RALLY_PHASES, ROTATION_ORDER, ROOT, source_slots
 
 
 def require(condition, message):
@@ -50,10 +50,24 @@ def main():
     if args.coach_pdf:
         require(hashlib.sha256(args.coach_pdf.read_bytes()).hexdigest() == coach["sourcePdfSha256"],
                 "local coach PDF differs from transcribed source")
-    require(data["schemaVersion"] == 1, "unsupported database schema")
+    require(data["schemaVersion"] == 2, "unsupported database schema")
     require(data["rotationOrder"] == ROTATION_ORDER, "rotation sequence differs from FIVB 7.6")
     require(data["nextPosition"] == {str(k): v for k, v in NEXT_POSITION.items()},
             "sideout rotation differs from FIVB 7.6")
+    require(data["rallyPhases"] == RALLY_PHASES, "rally phase order or checked anchors changed")
+    for serve, phases in data["rallyPhases"].items():
+        require(phases[0]["key"] == "rotation" and phases[1]["key"] == "serve",
+                f"{serve}: rally must start with the serve")
+        phase_keys = [phase["key"] for phase in phases]
+        require(("pass" in phase_keys) == (serve == "theirs"), f"{serve}: serve pass side changed")
+        require("dig" in phase_keys and "set" in phase_keys and "attack" in phase_keys,
+                f"{serve}: incomplete rally")
+        for phase in phases:
+            require(0 <= phase["view"] < 5, f"{serve}: phase outside checked court snapshots")
+            if "mix" in phase:
+                start, end, fraction = phase["mix"]
+                require(0 <= start < 5 and 0 <= end < 5 and 0 <= fraction <= 1,
+                        f"{serve}: invalid interpolation anchors")
     require(set(data["scenarios"]) == {"libero", "no-libero", "libero-ds", "no-libero-ds", "open-smart-special"},
             "missing lineup variant")
 
@@ -140,7 +154,16 @@ def main():
                                 require(points == expected, stage + ": coach serve-receive differs from PDF transcription")
                         if step == 1 and serve == "ours" and rules == "usav":
                             check_overlap(slots, points, server=1)
+                        if step == 1 and serve == "ours":
+                            require(points[slots["1"]]["y"] > 100,
+                                    stage + ": server must be behind the baseline at contact")
                         steps_checked += 1
+                    for phase in data["rallyPhases"][serve]:
+                        anchors = phase.get("mix", [phase["view"], phase["view"], 0])
+                        start = scenario["steps"][anchors[0]]["positions"]
+                        end = scenario["steps"][anchors[1]]["positions"]
+                        require(set(start) == set(end) == set(occupants),
+                                label + f": {phase['key']} changes players during a rally")
                     scenarios_checked += 1
     require(scenarios_checked == 180 and steps_checked == 900,
             "database does not cover all enumerated 5–1 contexts")

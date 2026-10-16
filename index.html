@@ -198,6 +198,7 @@
                     <div class="attack-line"></div>
                     <div class="court-positions" id="court-positions"></div>
                     <div class="team-players" id="team-players"></div>
+                    <div class="rally-ball" id="rally-ball" aria-hidden="true"></div>
                     <svg
                       class="movement-svg"
                       id="movement-svg"
@@ -243,7 +244,7 @@
                 </div>
                 <div class="court-legend">
                   <span
-                    ><i class="legend-dot legend-start"></i> Previous spot</span
+                    ><i class="legend-dot legend-start"></i> Previous phase</span
                   ><span><i class="legend-dot legend-target"></i> You now</span
                   ><span><i class="legend-line"></i> Your path</span>
                 </div>
@@ -266,6 +267,15 @@
                   <span class="kicker">FOLLOW THE RALLY</span>
                   <span>Choose a moment</span>
                 </div>
+                <div class="rally-controls" aria-label="Rally animation controls">
+                  <button type="button" id="rally-back" aria-label="Previous phase">←</button>
+                  <button type="button" id="rally-play" aria-label="Play rally">▶</button>
+                  <button type="button" id="rally-next" aria-label="Next phase">→</button>
+                  <label class="rally-speed">Speed <select id="rally-speed" aria-label="Animation speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+                </div>
+                <label class="rally-scrub-label" for="rally-scrub">Rally timeline</label>
+                <input id="rally-scrub" class="rally-scrub" type="range" min="0" max="600" step="1" value="0" aria-label="Rally timeline" />
+                <p class="rally-event" id="rally-event" aria-live="polite"></p>
                 <div
                   class="timeline"
                   id="timeline"
