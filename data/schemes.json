@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
   "reference": {
     "name": "rotazionivolley: ricezione-a-3",
@@ -222,20 +222,11 @@
         "view": 1
       },
       {
-        "key": "opponent-attack",
+        "key": "first-dig",
         "view": 2
       },
       {
-        "key": "dig",
-        "view": 2,
-        "mix": [
-          2,
-          3,
-          0.18
-        ]
-      },
-      {
-        "key": "set",
+        "key": "first-set",
         "view": 3,
         "mix": [
           2,
@@ -244,12 +235,25 @@
         ]
       },
       {
-        "key": "attack",
+        "key": "first-attack",
         "view": 3
       },
       {
-        "key": "reset",
+        "key": "second-dig",
         "view": 4
+      },
+      {
+        "key": "second-set",
+        "view": 3,
+        "mix": [
+          4,
+          3,
+          0.68
+        ]
+      },
+      {
+        "key": "second-attack",
+        "view": 3
       }
     ],
     "theirs": [
@@ -271,7 +275,7 @@
         ]
       },
       {
-        "key": "set",
+        "key": "first-set",
         "view": 3,
         "mix": [
           1,
@@ -280,21 +284,25 @@
         ]
       },
       {
-        "key": "attack",
+        "key": "first-attack",
         "view": 3
       },
       {
-        "key": "opponent-attack",
+        "key": "second-dig",
         "view": 4
       },
       {
-        "key": "dig",
-        "view": 4,
+        "key": "second-set",
+        "view": 3,
         "mix": [
           4,
           3,
-          0.15
+          0.68
         ]
+      },
+      {
+        "key": "second-attack",
+        "view": 3
       }
     ]
   },

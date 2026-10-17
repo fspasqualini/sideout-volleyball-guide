@@ -50,17 +50,19 @@ def main():
     if args.coach_pdf:
         require(hashlib.sha256(args.coach_pdf.read_bytes()).hexdigest() == coach["sourcePdfSha256"],
                 "local coach PDF differs from transcribed source")
-    require(data["schemaVersion"] == 2, "unsupported database schema")
+    require(data["schemaVersion"] == 3, "unsupported database schema")
     require(data["rotationOrder"] == ROTATION_ORDER, "rotation sequence differs from FIVB 7.6")
     require(data["nextPosition"] == {str(k): v for k, v in NEXT_POSITION.items()},
             "sideout rotation differs from FIVB 7.6")
     require(data["rallyPhases"] == RALLY_PHASES, "rally phase order or checked anchors changed")
     for serve, phases in data["rallyPhases"].items():
+        require(len(phases) == 8, f"{serve}: expected eight rally moments")
         require(phases[0]["key"] == "rotation" and phases[1]["key"] == "serve",
                 f"{serve}: rally must start with the serve")
         phase_keys = [phase["key"] for phase in phases]
         require(("pass" in phase_keys) == (serve == "theirs"), f"{serve}: serve pass side changed")
-        require("dig" in phase_keys and "set" in phase_keys and "attack" in phase_keys,
+        require(phase_keys[2:] == (["first-dig"] if serve == "ours" else ["pass"])
+                + ["first-set", "first-attack", "second-dig", "second-set", "second-attack"],
                 f"{serve}: incomplete rally")
         for phase in phases:
             require(0 <= phase["view"] < 5, f"{serve}: phase outside checked court snapshots")

@@ -49,20 +49,22 @@ RALLY_PHASES = {
     "ours": [
         {"key": "rotation", "view": 0},
         {"key": "serve", "view": 1},
-        {"key": "opponent-attack", "view": 2},
-        {"key": "dig", "view": 2, "mix": [2, 3, 0.18]},
-        {"key": "set", "view": 3, "mix": [2, 3, 0.72]},
-        {"key": "attack", "view": 3},
-        {"key": "reset", "view": 4},
+        {"key": "first-dig", "view": 2},
+        {"key": "first-set", "view": 3, "mix": [2, 3, 0.72]},
+        {"key": "first-attack", "view": 3},
+        {"key": "second-dig", "view": 4},
+        {"key": "second-set", "view": 3, "mix": [4, 3, 0.68]},
+        {"key": "second-attack", "view": 3},
     ],
     "theirs": [
         {"key": "rotation", "view": 0},
         {"key": "serve", "view": 1},
         {"key": "pass", "view": 2, "mix": [1, 2, 0.22]},
-        {"key": "set", "view": 3, "mix": [1, 2, 1]},
-        {"key": "attack", "view": 3},
-        {"key": "opponent-attack", "view": 4},
-        {"key": "dig", "view": 4, "mix": [4, 3, 0.15]},
+        {"key": "first-set", "view": 3, "mix": [1, 2, 1]},
+        {"key": "first-attack", "view": 3},
+        {"key": "second-dig", "view": 4},
+        {"key": "second-set", "view": 3, "mix": [4, 3, 0.68]},
+        {"key": "second-attack", "view": 3},
     ],
 }
 
@@ -199,7 +201,7 @@ def build_database(reference, coach):
                 }
 
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
         "reference": {
             "name": "rotazionivolley: ricezione-a-3",

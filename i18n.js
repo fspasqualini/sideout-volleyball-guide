@@ -53,7 +53,7 @@ const staticItalian = {
   "What do you want to see?": "Cosa vuoi vedere?",
   "Attack": "Attacco",
   "Defense": "Difesa",
-  "Pick attack or defense to jump to that movement. The game moments below the court show the whole rally.": "Scegli attacco o difesa per vedere subito quello spostamento. I momenti sotto il campo mostrano l'intero scambio.",
+  "Pick attack or defense to jump to that movement. The timeline above the court shows the whole rally.": "Scegli attacco o difesa per vedere subito quello spostamento. La sequenza sopra il campo mostra l'intero scambio.",
   "FOLLOW THE RALLY": "SEGUI LO SCAMBIO",
   "Choose a moment": "Scegli un momento",
   "Speed": "Velocità",

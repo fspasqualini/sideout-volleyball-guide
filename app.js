@@ -168,7 +168,7 @@ const state = {
   rules: valid(params.get("rules"), ["fivb", "usav", "trial"], "fivb"),
   step: valid(
     params.has("step") ? Number(params.get("step")) : null,
-    [0, 1, 2, 3, 4, 5, 6],
+    [0, 1, 2, 3, 4, 5, 6, 7],
     0,
   ),
 };
@@ -180,12 +180,13 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const rallyTitles = {
   rotation: ["Before the serve", "Prima della battuta"],
   serve: ["Our serve", "La nostra battuta"],
-  "opponent-attack": ["Their attack", "Attacco avversario"],
-  dig: ["Our dig", "La nostra difesa"],
-  set: ["Our set", "La nostra alzata"],
-  attack: ["Our attack", "Il nostro attacco"],
-  reset: ["Back to defense", "Torna in difesa"],
-  pass: ["Serve pass", "Ricezione della battuta"],
+  "first-dig": ["Their attack · our dig", "Attacco avversario · difesa"],
+  "first-set": ["First set", "Prima alzata"],
+  "first-attack": ["First attack", "Primo attacco"],
+  "second-dig": ["Second defense", "Seconda difesa"],
+  "second-set": ["Second set", "Seconda alzata"],
+  "second-attack": ["Second attack", "Secondo attacco"],
+  pass: ["Serve reception", "Ricezione"],
 };
 let playhead = state.step;
 let playing = false;
@@ -439,7 +440,7 @@ function renderOptions() {
     });
   }
   document.querySelectorAll("[data-focus]").forEach((button) => {
-    const active = button.dataset.focus === (phases()[state.step].key === "attack" ? "attack" : phases()[state.step].key === "reset" ? "defense" : "");
+    const active = button.dataset.focus === (phases()[state.step].key === "first-attack" ? "attack" : phases()[state.step].key === "second-dig" ? "defense" : "");
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
@@ -568,9 +569,10 @@ function renderPlayhead() {
   }
   const ballByEvent = {
     rotation: null, serve: { x: 58, y: -5 },
-    "opponent-attack": { x: 54, y: 13 }, dig: { x: 48, y: 70 },
-    pass: { x: 45, y: 66 }, set: { x: 75, y: 22 },
-    attack: { x: 37, y: 9 }, reset: null,
+    "first-dig": { x: 48, y: 70 }, "second-dig": { x: 48, y: 70 },
+    pass: { x: 45, y: 66 }, "first-set": { x: 75, y: 22 },
+    "second-set": { x: 75, y: 22 }, "first-attack": { x: 37, y: 9 },
+    "second-attack": { x: 37, y: 9 },
   };
   const ball = ballByEvent[sequence[fromIndex].key];
   $("rally-ball").hidden = !ball;
@@ -587,6 +589,10 @@ function renderTimeline() {
         `<button type="button" class="${state.step === step ? "active" : ""}" data-step="${step}" aria-pressed="${state.step === step}"><span class="step-num">0${step + 1}</span><span class="step-title">${phaseTitle(phase)}</span></button>`,
     )
     .join("");
+  $("rally-cycle-note").textContent = copy(
+    "If the ball returns after the second attack, repeat: defense → set → attack.",
+    "Se la palla torna dopo il secondo attacco, ripeti: difesa → alzata → attacco.",
+  );
   const phase = sequence[state.step];
   const originalStep = state.step;
   state.step = phase.view;
@@ -594,10 +600,12 @@ function renderTimeline() {
   state.step = originalStep;
   const firstTouch = phase.key === "pass"
     ? copy("A serve pass starts when the other team serves. Guide that ball toward the setter.", "La ricezione parte dalla battuta avversaria. Indirizza quella palla al palleggiatore.")
-    : phase.key === "dig"
+    : phase.key === "first-dig" || phase.key === "second-dig"
       ? copy("A dig follows an opponent's attack. Keep the ball alive, then build the next play.", "La difesa segue un attacco avversario. Tieni viva la palla, poi costruisci l'azione successiva.")
       : "";
-  $("rally-event").textContent = firstTouch || (state.lineup === "open-smart-special" && state.step > 2
+  $("rally-event").textContent = phase.key === "second-attack"
+    ? copy("If the ball comes back, repeat from second defense. These later movements are illustrative.", "Se la palla torna, riprendi dalla seconda difesa. Questi spostamenti successivi sono illustrativi.")
+    : firstTouch || (state.lineup === "open-smart-special" && state.step > 2
     ? copy("Attack and defense movement is an illustrative adaptation; the coach's 2015 diagrams cover reception only.", "Gli spostamenti di attacco e difesa sono adattamenti illustrativi; gli schemi del coach del 2015 mostrano solo la ricezione.")
     : copy("All six markers move between checked scheme positions; intermediate motion and the ball are illustrative.", "Tutti e sei i giocatori si spostano tra posizioni verificate; i movimenti intermedi e la palla sono illustrativi."));
   $("instruction-kicker").textContent =
@@ -606,7 +614,7 @@ function renderTimeline() {
   $("instruction-body").textContent = `${firstTouch ? `${firstTouch} ` : ""}${instruction.body}`;
   $("instruction-icon").textContent = invalidLibero()
     ? "!"
-    : ["◎", "⇢", "↗", "✦", "↓", "↗", "↓"][state.step];
+    : ["◎", "⇢", "↗", "✦", "↑", "↓", "✦", "↑"][state.step];
   $("rally-play").textContent = playing ? "❚❚" : "▶";
   $("rally-play").setAttribute("aria-label", playing ? copy("Pause rally", "Pausa lo scambio") : copy("Play rally", "Avvia lo scambio"));
   $("rally-back").setAttribute("aria-label", copy("Previous phase", "Fase precedente"));
@@ -740,7 +748,7 @@ document.addEventListener("click", (event) => {
     render();
   }
   if (button.dataset.focus) {
-    seekRally(button.dataset.focus === "attack" ? 4 : state.serve === "ours" ? 6 : 5);
+    seekRally(button.dataset.focus === "attack" ? 4 : 5);
   }
   if (button.dataset.position) {
     pauseRally();
@@ -819,13 +827,13 @@ mobileNavigation.addEventListener("change", (event) => {
   $("player-navigation").open = !event.matches;
 });
 
-fetch("./data/schemes.json")
+fetch("./data/schemes.json?v=3")
   .then((response) => {
     if (!response.ok) throw new Error(`Court database returned ${response.status}`);
     return response.json();
   })
   .then((database) => {
-    if (database.schemaVersion !== 2) throw new Error("Unsupported court database version");
+    if (database.schemaVersion !== 3) throw new Error("Unsupported court database version");
     schemeDatabase = database;
     nextPosition = database.nextPosition;
     previousPosition = Object.fromEntries(

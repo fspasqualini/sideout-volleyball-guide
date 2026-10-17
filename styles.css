@@ -1519,6 +1519,7 @@ h1 em {
 .rally-scrub-label { display: block; margin-top: 12px; font-size: 12px; font-weight: 800; }
 .rally-scrub { width: 100%; accent-color: var(--orange); touch-action: none; }
 .rally-event { font-size: 12px; line-height: 1.5; color: var(--ink-soft); margin: 7px 0 0; }
+.rally-cycle-note { margin: 9px 0 0; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
 .timeline {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
