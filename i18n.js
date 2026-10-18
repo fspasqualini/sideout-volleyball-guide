@@ -2,6 +2,7 @@
 // so the language switch also translates content outside the interactive court.
 const staticItalian = {
   "Sideout — Find your place on court": "Sideout — Trova il tuo posto in campo",
+  "Skip to interactive guide": "Vai alla guida interattiva",
   "Playbook": "Guida",
   "Roles": "Ruoli",
   "Rules & sources": "Regole e fonti",

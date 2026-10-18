@@ -977,11 +977,14 @@ $("share-button").addEventListener("click", async () => {
       if (!copied) throw new Error("Clipboard unavailable");
     }
     button.textContent = copy("Link copied ✓", "Link copiato ✓");
+    $("share-status").textContent = copy("Link copied to clipboard.", "Link copiato negli appunti.");
   } catch {
     button.textContent = copy("Copy URL from address bar", "Copia l'indirizzo dalla barra del browser");
+    $("share-status").textContent = copy("Copy the URL from the browser address bar.", "Copia l'indirizzo dalla barra del browser.");
   }
   setTimeout(() => {
     button.innerHTML = `${copy("Share this view", "Condividi questa vista")} <span aria-hidden="true">↗</span>`;
+    $("share-status").textContent = "";
   }, 2400);
 });
 

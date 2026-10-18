@@ -17,6 +17,21 @@
   box-sizing: border-box;
 }
 [hidden] { display: none !important; }
+.skip-link {
+  position: absolute;
+  top: 12px;
+  left: 24px;
+  z-index: 100;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 700;
+  transform: translateY(-160%);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
 html {
   scroll-behavior: smooth;
 }
@@ -651,6 +666,12 @@ h1 em {
   width: min(100%, 600px);
   position: relative;
 }
+.court-stage.two-sides {
+  --service-lane: 60px;
+  --opponent-depth: clamp(290px, 29vw, 400px);
+  padding-top: var(--service-lane);
+  background: #eef7fc;
+}
 .opponent-strip {
   height: 53px;
   background: #e3f0f8;
@@ -696,7 +717,7 @@ h1 em {
   border-radius: 4px;
 }
 .court-stage.two-sides .net-label {
-  top: calc(clamp(290px, 29vw, 400px) + 5px);
+  top: calc(var(--service-lane) + var(--opponent-depth) + 5px);
 }
 .court {
   position: relative;
@@ -708,7 +729,7 @@ h1 em {
 }
 .opponent-court {
   position: relative;
-  height: clamp(290px, 29vw, 400px);
+  height: var(--opponent-depth, clamp(290px, 29vw, 400px));
   background: #e4f2fa;
   border: 3px solid white;
   outline: 1px solid #a9cce2;
@@ -2154,8 +2175,7 @@ h1 em {
   .court {
     height: 310px;
   }
-  .opponent-court { height: 260px; }
-  .court-stage.two-sides .net-label { top: 265px; }
+  .court-stage.two-sides { --opponent-depth: 260px; }
   .opponent-player { width: 34px; height: 34px; font-size: 10px; }
 }
 @media (max-width: 390px) {
