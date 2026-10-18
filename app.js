@@ -213,10 +213,19 @@ function phasePositions(team, phase, opponent = false) {
   }]));
 }
 function rallyPositions(team, sequence, index, opponent = false) {
-  const points = phasePositions(team, sequence[index], opponent);
-  if (!teachingPlayback()) return points;
+  const base = phasePositions(team, sequence[index], opponent);
+  if (!teachingPlayback()) return base;
   const receiving = opponent ? state.serve === "ours" : state.serve === "theirs";
   const settingSpot = team.steps[3].positions.S;
+  const points = { ...base };
+  if (receiving && index === 3) {
+    // The front row begins its attacking transition during the pass, rather
+    // than holding the serve-receive stack until the next timeline moment.
+    for (const slot of ["4", "3", "2"]) {
+      const player = team.bySlot[slot];
+      if (player !== "S") points[player] = team.steps[3].positions[player];
+    }
+  }
   let fraction = 0;
   if (receiving && index === 2) fraction = 0.78;
   if (receiving && index === 3) fraction = 1;
@@ -621,25 +630,35 @@ function renderPlayhead() {
     element.style.left = `${point.x}%`;
     element.style.top = `${point.y}%`;
   };
-  const interpolate = (a, b) => ({
-    x: a.x + (b.x - a.x) * travel,
-    y: a.y + (b.y - a.y) * travel,
+  const interpolate = (a, b, progress = travel) => ({
+    x: a.x + (b.x - a.x) * progress,
+    y: a.y + (b.y - a.y) * progress,
   });
+  const frontProgress = teachingPlayback() && fromIndex === 2
+    ? Math.min(1, travel * 2) : travel;
+  const ourFront = new Set(["4", "3", "2"].map((slot) => team.bySlot[slot]));
   document.querySelectorAll("#team-players [data-player]").forEach((marker) => {
     const id = marker.dataset.player;
-    place(marker, interpolate(from[id], to[id]));
+    const approach = state.serve === "theirs" && ourFront.has(id) && id !== "S";
+    place(marker, interpolate(from[id], to[id], approach ? frontProgress : travel));
   });
   if (state.opponents) {
     const opponent = opponentLineup();
     const opponentFrom = rallyPositions(opponent, sequence, fromIndex, true);
     const opponentTo = rallyPositions(opponent, sequence, toIndex, true);
+    const opponentFront = new Set(["4", "3", "2"].map((slot) => opponent.bySlot[slot]));
     document.querySelectorAll("#opponent-players [data-player]").forEach((marker) => {
-      const point = interpolate(opponentFrom[marker.dataset.player], opponentTo[marker.dataset.player]);
+      const id = marker.dataset.player;
+      const approach = state.serve === "ours" && opponentFront.has(id) && id !== "S";
+      const point = interpolate(opponentFrom[id], opponentTo[id], approach ? frontProgress : travel);
       place(marker, { x: 100 - point.x, y: 100 - point.y });
     });
   }
   const selected = team.selected;
-  if (selected) place($("target-token"), interpolate(from[selected], to[selected]));
+  if (selected) {
+    const approach = state.serve === "theirs" && ourFront.has(selected) && selected !== "S";
+    place($("target-token"), interpolate(from[selected], to[selected], approach ? frontProgress : travel));
+  }
   const pathIndex = travel > 0 ? toIndex : fromIndex;
   const previous = rallyPositions(team, sequence, Math.max(0, pathIndex - 1));
   const destination = rallyPositions(team, sequence, pathIndex);
@@ -674,7 +693,7 @@ function renderPlayhead() {
     const area = ours ? ourCourt : opposingArea;
     const rect = area.getBoundingClientRect();
     const contactLift = touch && index > 1 && (ours || state.opponents)
-      ? (ours ? -ballContactLiftPx : ballContactLiftPx) : 0;
+      ? -ballContactLiftPx : 0;
     const boxLeft = rect.left - stage.left + (touch ? area.clientLeft : 0);
     const boxTop = rect.top - stage.top + (touch ? area.clientTop : 0);
     const boxWidth = touch ? area.clientWidth : rect.width;
@@ -692,10 +711,27 @@ function renderPlayhead() {
   $("rally-ball").hidden = fromIndex === 0 && travel === 0;
   const ballFrom = ballPoint(fromIndex);
   const ballTo = ballPoint(toIndex);
-  const arc = reducedMotion.matches ? 0 : Math.sin(Math.PI * travel) *
-    Math.min(54, Math.hypot(ballTo.x - ballFrom.x, ballTo.y - ballFrom.y) * 0.11);
-  $("rally-ball").style.left = `${ballFrom.x + (ballTo.x - ballFrom.x) * travel}px`;
-  $("rally-ball").style.top = `${ballFrom.y + (ballTo.y - ballFrom.y) * travel - arc}px`;
+  const passToSetter = teachingPlayback() && (toIndex === 3 || toIndex === 6);
+  if (passToSetter && sequence[toIndex].owner === "ours") {
+    const depth = ourCourt.clientHeight;
+    // The ball leaves the passer in their lane, then approaches the setter
+    // from above. It avoids an apparent early touch on the moving player.
+    const control1 = { x: ballFrom.x, y: ballFrom.y + depth * 0.38 };
+    const control2 = { x: ballFrom.x, y: ballTo.y - depth * 0.33 };
+    const remaining = 1 - travel;
+    const cubic = (axis) => remaining ** 3 * ballFrom[axis]
+      + 3 * remaining ** 2 * travel * control1[axis]
+      + 3 * remaining * travel ** 2 * control2[axis]
+      + travel ** 3 * ballTo[axis];
+    $("rally-ball").style.left = `${cubic("x")}px`;
+    $("rally-ball").style.top = `${cubic("y")}px`;
+  } else {
+    const arc = reducedMotion.matches ? 0 : Math.sin(Math.PI * travel) *
+      Math.min(54, Math.hypot(ballTo.x - ballFrom.x, ballTo.y - ballFrom.y) * 0.11);
+    $("rally-ball").style.left = `${ballFrom.x + (ballTo.x - ballFrom.x) * travel}px`;
+    $("rally-ball").style.top = `${ballFrom.y + (ballTo.y - ballFrom.y) * travel
+      + (passToSetter ? arc : -arc)}px`;
+  }
   $("rally-scrub").value = String(Math.round(playhead * 100));
   $("rally-scrub").setAttribute("aria-valuetext", `${ownerLabel(sequence[fromIndex]) ? `${ownerLabel(sequence[fromIndex])} · ` : ""}${phaseTitle(sequence[fromIndex])}`);
 }

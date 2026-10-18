@@ -36,13 +36,14 @@ its separately declared `opponentView` anchor. This is a structurally checked
 example, not a reconstruction of a real opponent's lineup or tactics. A few
 short intermediate events interpolate between checked moments; these travel
 paths and the ball cue are illustrative. In the Open smart preview, the
-receiving setter begins moving during the serve flight and reaches the
-checked attack area when the pass arrives. The serving setter moves during
-the opposing attack and ensuing pass. These timing choices and the player
-chosen for each touch are illustrative: the two attacks go to the available
+receiving setter begins moving during the serve flight, and the front row
+transitions toward its checked attack view as the pass travels to the setter.
+The serving setter moves during the opposing attack and ensuing pass. These
+timing choices and the player chosen for each touch are illustrative: the two
+attacks go to the available
 front-row outside hitter, with the ball centered above that player at contact.
-They are not extra coach diagrams. The
-serve-receive pass follows a serve; a dig follows an attack and is distinct
+The intervening ball curves are illustrative, not extra coach diagrams.
+The serve-receive pass follows a serve; a dig follows an attack and is distinct
 from receiving a serve. Later
 sets and attacks reuse checked attack shapes as illustrative continuation
 moments, not new coaching diagrams.
