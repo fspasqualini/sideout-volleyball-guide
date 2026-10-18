@@ -197,16 +197,6 @@ const roleItalian = {
     receiveFront: "Il Libero non gioca in prima linea.",
     receiveBack: "Prendi la tua zona di ricezione, chiama «mia» e passa verso il palleggiatore vicino a zona 2.",
   },
-  ds: {
-    name: "Specialista difensivo",
-    intro: "Riceve e difende in seconda linea; a differenza del Libero segue le normali regole di sostituzione.",
-    front: "Può giocare in prima linea, ma spesso la squadra lo sostituisce con un attaccante. Controlla la formazione.",
-    back: "Copri una zona di seconda linea, ricevi e difendi gli attacchi.",
-    serveFront: "Se resti in prima linea, aiuta a murare o coprire; la squadra potrebbe sostituirti con un attaccante.",
-    serveBack: "Vai nella zona difensiva assegnata. Comunica con il Libero o con gli altri ricevitori.",
-    receiveFront: "Se sei in prima linea, segui lo schema di ricezione e poi copri l'attacco.",
-    receiveBack: "Prendi la tua zona di ricezione e passa al palleggiatore.",
-  },
 };
 
 roleItalian.middle2 = { ...roleItalian.middle, name: "Centrale 2" };

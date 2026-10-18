@@ -85,7 +85,7 @@ def source_slots(points):
 
 def active_slots(reference, rotation, serve, rules, variant, base_slots):
     slots = dict(base_slots)
-    if "libero" in variant and not variant.startswith("no-"):
+    if variant == "libero":
         side = "serve" if serve == "ours" else "receive"
         swap = reference.get("liberoSwaps", {}).get(str(rotation), {}).get(side)
         # The USAV example uses the permitted single libero service rotation
@@ -98,10 +98,7 @@ def active_slots(reference, rotation, serve, rules, variant, base_slots):
             if len(matches) != 1 or matches[0] not in (1, 5, 6):
                 raise ValueError(f"Invalid libero replacement in rotation {rotation}: {swap}")
             slots[matches[0]] = swap["libero"]
-    mapped = {str(slot): SOURCE_TO_APP[player] for slot, player in slots.items()}
-    if variant.endswith("-ds"):
-        mapped = {slot: ("DS" if player == "OH2" else player) for slot, player in mapped.items()}
-    return mapped
+    return {str(slot): SOURCE_TO_APP[player] for slot, player in slots.items()}
 
 
 def normalized(point):
@@ -112,7 +109,7 @@ def normalized(point):
 
 def source_point(reference, phase, rotation, player, slots):
     source_points = reference["positions"][phase][str(rotation)]
-    source_player = APP_TO_SOURCE["OH2" if player == "DS" else player]
+    source_player = APP_TO_SOURCE[player]
     if source_player == "L1" and source_player not in source_points:
         # The reference stores explicit Libero points only for some phases.
         # Its viewer uses the replaced middle's point otherwise.
@@ -168,7 +165,7 @@ def build_database(reference, coach):
     }
 
     scenarios = {}
-    for variant in ("libero", "no-libero", "libero-ds", "no-libero-ds"):
+    for variant in ("libero", "no-libero"):
         scenarios[variant] = {}
         for serve in ("ours", "theirs"):
             scenarios[variant][serve] = {}
@@ -206,7 +203,7 @@ def build_database(reference, coach):
                 }
 
     return {
-        "schemaVersion": 4,
+        "schemaVersion": 5,
         "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
         "reference": {
             "name": "rotazionivolley: ricezione-a-3",

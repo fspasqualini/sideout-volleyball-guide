@@ -87,24 +87,6 @@ const roles = {
     receiveBack:
       "Take your assigned serve-receive lane. Call 'mine' early and pass toward the setter near right front.",
   },
-  ds: {
-    name: "Defensive specialist",
-    short: "DS",
-    icon: "↓",
-    intro:
-      "A back-row passer and defender. Unlike a libero, a DS follows ordinary substitution rules.",
-    front:
-      "A DS can legally play front row, but teams often substitute a front-row attacker here. Check your lineup.",
-    back: "Cover an assigned back-row lane, receive serves, and dig attacks.",
-    serveFront:
-      "If you stay in front row, help block or cover; your team may substitute a hitter here.",
-    serveBack:
-      "Move into your assigned back-row defensive lane. Communicate with the libero or other passers.",
-    receiveFront:
-      "If on court in front row, follow the team passing plan, then prepare to cover the attack.",
-    receiveBack:
-      "Take your assigned serve-receive lane and pass toward the setter.",
-  },
 };
 roles.middle2 = { ...roles.middle, name: "Middle blocker 2", short: "MB2" };
 roles.outside2 = { ...roles.outside, name: "Outside hitter 2", short: "OH2" };
@@ -115,9 +97,8 @@ function roleInfo(key) {
 }
 
 const copy = (english, italian) => state.lang === "it" ? italian : english;
-const visibleRoles = () => ["setter", "outside", "outside2", "opposite", "middle", "middle2", "libero", "ds"].filter(
-  (key) => (key !== "libero" || state.lineup === "libero") &&
-    (key !== "ds" || state.lineup !== "open-smart-special"),
+const visibleRoles = () => ["setter", "outside", "outside2", "opposite", "middle", "middle2", "libero"].filter(
+  (key) => key !== "libero" || state.lineup === "libero",
 );
 
 const positions = {
@@ -142,12 +123,11 @@ const exampleNames = {
 };
 const italianMarkerLabels = {
   S: "P", OH1: "B1", OH2: "B2", MB1: "C1", MB2: "C2",
-  OP: "O", L: "L", DS: "SD",
+  OP: "O", L: "L",
 };
 const markerLabel = (id) => state.lang === "it" ? italianMarkerLabels[id] : id;
 function playerName(id) {
   if (id === "L") return "Libero";
-  if (id === "DS") return copy("Defensive specialist", "Specialista difensivo");
   const italian = {
     S: "Palleggiatore", OH1: "Banda 1", OH2: "Banda 2",
     MB1: "Centrale 1", MB2: "Centrale 2", OP: "Opposto",
@@ -174,7 +154,6 @@ const state = {
   ),
 };
 if (state.lineup !== "libero" && state.role === "libero") state.role = "setter";
-if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "setter";
 
 const $ = (id) => document.getElementById(id);
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -195,7 +174,6 @@ let animationFrame = 0;
 // Time between touches: slow enough to follow the routes, without freezing at each touch.
 const teachingLegMs = [1800, 2600, 1900, 1800, 2400, 1900, 1800];
 const ballContactLiftPx = 32;
-const teachingPlayback = () => state.lineup === "open-smart-special";
 const phases = () => schemeDatabase.rallyPhases[state.serve];
 const phaseTitle = (phase) => rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
 const ownerLabel = (phase) => phase.owner === "none" ? "" : phase.owner === "ours"
@@ -214,7 +192,6 @@ function phasePositions(team, phase, opponent = false) {
 }
 function rallyPositions(team, sequence, index, opponent = false) {
   const base = phasePositions(team, sequence[index], opponent);
-  if (!teachingPlayback()) return base;
   const receiving = opponent ? state.serve === "ours" : state.serve === "theirs";
   const settingSpot = team.steps[3].positions.S;
   const points = { ...base };
@@ -232,8 +209,8 @@ function rallyPositions(team, sequence, index, opponent = false) {
   if (!receiving && index === 5) fraction = 0.38;
   if (!receiving && index === 6) fraction = 1;
   if (!fraction) return points;
-  // The coach's transcription fixes the serve-contact stack; the setter's
-  // post-contact route is an illustrative bridge to the checked attack view.
+  // The checked serve-contact stack is unchanged. The setter's route after
+  // contact is an illustrative bridge to the checked attack view.
   const start = receiving
     ? phasePositions(team, sequence[1], opponent).S
     : phasePositions(team, sequence[4], opponent).S;
@@ -263,7 +240,7 @@ function rallyTouch(team, sequence, index, opponent = false) {
   // player nearest zone 6 handles the illustrative dig after an attack.
   const rotation = schemeDatabase.rotationOrder[team.turns || 0];
   const passers = schemeDatabase.coachPassers[String(rotation)];
-  const eligible = index === 2 && !opponent
+  const eligible = index === 2 && !opponent && state.lineup === "open-smart-special"
     ? candidates.filter((id) => passers.includes(id)) : candidates;
   const pool = eligible.length ? eligible : candidates;
   const target = { x: 50, y: 65 };
@@ -293,7 +270,6 @@ const selectedStartingId = {
   middle: "MB1",
   middle2: "MB2",
   libero: "MB1",
-  ds: "OH2",
 };
 
 function activeLineup() {
@@ -304,12 +280,11 @@ function activeLineup() {
     rotations[number][state.position] === anchor,
   );
   if (rotation === undefined) throw new Error(`No verified rotation for ${state.role} in ${state.position}`);
-  const variant = state.lineup === "open-smart-special" ? state.lineup
-    : `${state.lineup}${state.role === "ds" ? "-ds" : ""}`;
+  const variant = state.lineup;
   const scenario = schemeDatabase.scenarios[variant][state.serve][state.rules][rotation];
   const candidate = {
     setter: "S", outside: "OH1", outside2: "OH2", opposite: "OP", middle: "MB1",
-    middle2: "MB2", libero: "L", ds: "DS",
+    middle2: "MB2", libero: "L",
   }[state.role];
   const selected = Object.values(scenario.bySlot).includes(candidate) ? candidate : null;
   return {
@@ -471,7 +446,6 @@ function stepCopy() {
       : copy("Cover your hitter from the back row and prepare to defend the next ball.", "Copri l'attaccante dalla seconda linea e preparati a difendere la palla successiva."),
     libero:
       copy("Stay behind the attack and cover tips or blocks that bounce back. You cannot block or attack a ball entirely above the net.", "Resta dietro l'attacco e copri pallonetti o palle respinte dal muro. Non puoi murare né attaccare una palla completamente sopra la rete."),
-    ds: copy("Cover the hitters and be ready to dig if the ball comes back. Follow your team's substitution plan for the next rotation.", "Copri gli attaccanti e preparati a difendere la palla che torna. Segui il piano di sostituzioni della squadra alla prossima rotazione."),
   };
   attackCopy.middle2 = attackCopy.middle;
   attackCopy.outside2 = attackCopy.outside;
@@ -498,7 +472,7 @@ function renderOptions() {
   $("role-options").innerHTML = visibleRoles().map((key) => [key, roleInfo(key)])
     .map(
       ([key, role]) =>
-        `<button type="button" class="role-option ${state.role === key ? "active" : ""}" data-role="${key}" aria-pressed="${state.role === key}">${key === "outside" ? copy("Outside 1", "Banda 1") : key === "outside2" ? copy("Outside 2", "Banda 2") : key === "middle" ? copy("Middle 1", "Centrale 1") : key === "middle2" ? copy("Middle 2", "Centrale 2") : key === "opposite" ? copy("Opposite", "Opposto") : key === "ds" ? copy("DS", "SD") : role.name}</button>`,
+        `<button type="button" class="role-option ${state.role === key ? "active" : ""}" data-role="${key}" aria-pressed="${state.role === key}">${key === "outside" ? copy("Outside 1", "Banda 1") : key === "outside2" ? copy("Outside 2", "Banda 2") : key === "middle" ? copy("Middle 1", "Centrale 1") : key === "middle2" ? copy("Middle 2", "Centrale 2") : key === "opposite" ? copy("Opposite", "Opposto") : role.name}</button>`,
     )
     .join("");
   $("rotation-options").innerHTML = [4, 3, 2, 5, 6, 1]
@@ -602,7 +576,7 @@ function renderCourt() {
       ? copy("Libero on court · middle off court", "Libero in campo · centrale fuori")
       : `${roleInfo(state.role).name} · ${positionLabel(state.position)}`;
   const onCourt = new Set(Object.values(team.bySlot));
-  $("player-key").innerHTML = ["S", "OH1", "OH2", "MB1", "MB2", "OP", "L", "DS"]
+  $("player-key").innerHTML = ["S", "OH1", "OH2", "MB1", "MB2", "OP", "L"]
     .filter((id) => onCourt.has(id))
     .map((id) => `<span><b>${markerLabel(id)}</b> ${playerName(id)}</span>`)
     .join("");
@@ -623,7 +597,7 @@ function renderPlayhead() {
   const toIndex = Math.min(fromIndex + 1, sequence.length - 1);
   const rawFraction = playhead - fromIndex;
   const fraction = reducedMotion.matches ? 0 : rawFraction;
-  const travel = teachingPlayback() ? fraction * fraction * (3 - 2 * fraction) : fraction;
+  const travel = fraction * fraction * (3 - 2 * fraction);
   const from = rallyPositions(team, sequence, fromIndex);
   const to = rallyPositions(team, sequence, toIndex);
   const place = (element, point) => {
@@ -634,7 +608,7 @@ function renderPlayhead() {
     x: a.x + (b.x - a.x) * progress,
     y: a.y + (b.y - a.y) * progress,
   });
-  const frontProgress = teachingPlayback() && fromIndex === 2
+  const frontProgress = fromIndex === 2
     ? Math.min(1, travel * 2) : travel;
   const ourFront = new Set(["4", "3", "2"].map((slot) => team.bySlot[slot]));
   document.querySelectorAll("#team-players [data-player]").forEach((marker) => {
@@ -686,9 +660,7 @@ function renderPlayhead() {
   const ballPoint = (index) => {
     const phase = sequence[index];
     const ours = (phase.owner === "none" ? state.serve : phase.owner) === "ours";
-    const touch = teachingPlayback()
-      ? rallyTouch(ours ? team : opponentLineup(), sequence, index, !ours)
-      : null;
+    const touch = rallyTouch(ours ? team : opponentLineup(), sequence, index, !ours);
     const local = touch || ballByEvent[phase.key] || ballByEvent.serve;
     const area = ours ? ourCourt : opposingArea;
     const rect = area.getBoundingClientRect();
@@ -699,8 +671,7 @@ function renderPlayhead() {
     const boxWidth = touch ? area.clientWidth : rect.width;
     const boxHeight = touch ? area.clientHeight : rect.height;
     return {
-      // Open smart contact points use the markers' inner box so the ball
-      // meets them exactly. Other lineups retain their existing ball mapping.
+      // The same inner court box positions the ball and player markers.
       x: boxLeft + (ours ? local.x : 100 - local.x) * boxWidth / 100,
       y: boxTop + (ours ? local.y * boxHeight / 100
         : state.opponents ? Math.max(0, 100 - local.y) * boxHeight / 100
@@ -711,7 +682,7 @@ function renderPlayhead() {
   $("rally-ball").hidden = fromIndex === 0 && travel === 0;
   const ballFrom = ballPoint(fromIndex);
   const ballTo = ballPoint(toIndex);
-  const passToSetter = teachingPlayback() && (toIndex === 3 || toIndex === 6);
+  const passToSetter = toIndex === 3 || toIndex === 6;
   if (passToSetter && sequence[toIndex].owner === "ours") {
     const depth = ourCourt.clientHeight;
     // The ball leaves the passer in their lane, then approaches the setter
@@ -738,10 +709,9 @@ function renderPlayhead() {
 
 function renderTimeline() {
   const sequence = phases();
-  $("rally-preview-note").hidden = !teachingPlayback();
   $("rally-preview-note").textContent = copy(
-    "Open smart special preview: the ball and all players move together between touches.",
-    "Anteprima Open smart special: palla e giocatori si muovono insieme tra un tocco e l'altro.",
+    "The ball and all players move together between touches in every lineup.",
+    "Palla e giocatori si muovono insieme tra un tocco e l'altro in tutti gli schemi.",
   );
   $("timeline").innerHTML = sequence
     .map(
@@ -812,7 +782,6 @@ function renderTeam() {
     middle: ["MB1", "MB2"],
     middle2: ["MB2"],
     libero: ["L"],
-    ds: ["DS"],
   }[state.role];
   $("team-grid").innerHTML = [4, 3, 2, 5, 6, 1]
     .map((spot) => {
@@ -866,43 +835,33 @@ function tickRally(time) {
   if (!playing) return;
   if (lastFrameTime) {
     const speed = Number($("rally-speed").value);
-    if (teachingPlayback()) {
-      let remaining = Math.min(time - lastFrameTime, 120) * speed;
-      while (remaining > 0 && playhead < phases().length - 1) {
-        const segment = Math.floor(playhead);
-        const duration = teachingLegMs[segment];
-        const available = (segment + 1 - playhead) * duration;
-        const used = Math.min(remaining, available);
-        playhead = used >= available - 0.000001
-          ? segment + 1 : playhead + used / duration;
-        remaining -= used;
+    let remaining = Math.min(time - lastFrameTime, 120) * speed;
+    while (remaining > 0 && playhead < phases().length - 1) {
+      const segment = Math.floor(playhead);
+      const duration = teachingLegMs[segment];
+      const available = (segment + 1 - playhead) * duration;
+      const used = Math.min(remaining, available);
+      playhead = used >= available - 0.000001
+        ? segment + 1 : playhead + used / duration;
+      remaining -= used;
+    }
+    const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
+    if (activeStep !== state.step) {
+      state.step = activeStep;
+      render();
+      const panel = document.querySelector(".controls-panel");
+      const active = $("timeline").querySelector(".active");
+      if (window.innerWidth > 780 && active) {
+        const panelBox = panel.getBoundingClientRect();
+        const activeBox = active.getBoundingClientRect();
+        if (activeBox.bottom > panelBox.bottom - 16)
+          panel.scrollTop += activeBox.bottom - panelBox.bottom + 16;
       }
-      const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
-      if (activeStep !== state.step) {
-        state.step = activeStep;
-        render();
-        const panel = document.querySelector(".controls-panel");
-        const active = $("timeline").querySelector(".active");
-        if (window.innerWidth > 780 && active) {
-          const panelBox = panel.getBoundingClientRect();
-          const activeBox = active.getBoundingClientRect();
-          if (activeBox.bottom > panelBox.bottom - 16)
-            panel.scrollTop += activeBox.bottom - panelBox.bottom + 16;
-        }
-      } else renderPlayhead();
-      if (playhead >= phases().length - 1) { pauseRally(); return; }
-    } else {
-      playhead = Math.min(phases().length - 1, playhead + (time - lastFrameTime) * speed / 1650);
-      const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
-      if (activeStep !== state.step) {
-        state.step = activeStep;
-        render();
-      } else renderPlayhead();
-      if (playhead >= phases().length - 1) {
-        pauseRally();
-        renderPlayhead();
-        return;
-      }
+    } else renderPlayhead();
+    if (playhead >= phases().length - 1) {
+      pauseRally();
+      renderPlayhead();
+      return;
     }
   }
   lastFrameTime = time;
@@ -933,7 +892,6 @@ document.addEventListener("click", (event) => {
     pauseRally();
     state.lineup = button.dataset.lineup;
     if (state.lineup !== "libero" && state.role === "libero") state.role = "middle";
-    if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "outside";
     render();
   }
   if (button.dataset.lang) {
@@ -1033,13 +991,13 @@ mobileNavigation.addEventListener("change", (event) => {
   if (!event.matches) $("player-navigation").open = true;
 });
 
-fetch("./data/schemes.json?v=4")
+fetch("./data/schemes.json?v=5")
   .then((response) => {
     if (!response.ok) throw new Error(`Court database returned ${response.status}`);
     return response.json();
   })
   .then((database) => {
-    if (database.schemaVersion !== 4) throw new Error("Unsupported court database version");
+    if (database.schemaVersion !== 5) throw new Error("Unsupported court database version");
     schemeDatabase = database;
     nextPosition = database.nextPosition;
     previousPosition = Object.fromEntries(

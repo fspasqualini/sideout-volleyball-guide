@@ -15,11 +15,10 @@ Coverage is explicit:
 | Setter rotation | P1, P6, P5, P4, P3, P2 |
 | Serve side | Our team, other team |
 | Lineup | With Libero, without Libero, Open smart special |
-| Optional ordinary substitution | Defensive specialist for Outside 2 |
 | Rule timing | FIVB 2025–28, USA Volleyball 2025–27, selected FIVB 2026 trial |
 | Moments | Numbered rotation, serve, first response, attack, defense |
 
-This is 180 contexts and 900 stored court moments. The rotazionivolley source has seven phases:
+This is 108 contexts and 540 stored court moments. The rotazionivolley source has seven phases:
 `base`, `serveServe`, `switchServe`, `receiveReceive`, `receiveSet`,
 `receiveHit`, and `switchReceive`. `phasesByView` declares which source phase
 each moment uses in each rule set. The FIVB serving team may switch into its
@@ -35,7 +34,7 @@ The optional opponent view uses the opposite-serve, no-Libero P1 example and
 its separately declared `opponentView` anchor. This is a structurally checked
 example, not a reconstruction of a real opponent's lineup or tactics. A few
 short intermediate events interpolate between checked moments; these travel
-paths and the ball cue are illustrative. In the Open smart preview, the
+paths and the ball cue are illustrative. In all three lineups, the
 receiving setter begins moving during the serve flight, and the front row
 transitions toward its checked attack view as the pass travels to the setter.
 The serving setter moves during the opposing attack and ensuing pass. These
@@ -64,7 +63,7 @@ PDF panel says “zona 1 - P5”; the numbered positions in its drawing show P5.
 if a rotation or substitution breaks the rules encoded in the checker, if a
 required view is missing, or if the required serve-contact order is broken.
 The no-Libero variant uses the middle coordinates that the source includes;
-the defensive specialist takes Outside 2's ordinary substitution spot. The
+Outside 2 stays on court in both 5–1 variants. The
 "our serve → attack" moment reuses the source's general attack phase. These
 derived choices are declared in the generator for review.
 Run it before publishing; if you have the source PDF, pass it to verify its

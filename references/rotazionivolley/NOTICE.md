@@ -9,5 +9,5 @@ is included here. SHA-256 of the JSON file:
 `9fec10d49f723d5036feaa5ea78a7288d04409d759cf05c601c57d0585d0b5c2`
 
 The generated `data/schemes.json` changes coordinate units, English player IDs,
-Libero and defensive-specialist variants, and phase timing for the selected
+Libero and no-Libero variants, and phase timing for the selected
 rule set. It is marked as a derived teaching example in the app.

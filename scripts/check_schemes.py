@@ -50,7 +50,7 @@ def main():
     if args.coach_pdf:
         require(hashlib.sha256(args.coach_pdf.read_bytes()).hexdigest() == coach["sourcePdfSha256"],
                 "local coach PDF differs from transcribed source")
-    require(data["schemaVersion"] == 4, "unsupported database schema")
+    require(data["schemaVersion"] == 5, "unsupported database schema")
     require(data["rotationOrder"] == ROTATION_ORDER, "rotation sequence differs from FIVB 7.6")
     require(data["nextPosition"] == {str(k): v for k, v in NEXT_POSITION.items()},
             "sideout rotation differs from FIVB 7.6")
@@ -75,7 +75,7 @@ def main():
                     start, end, fraction = phase[mix_key]
                     require(0 <= start < 5 and 0 <= end < 5 and 0 <= fraction <= 1,
                             f"{serve}: invalid {mix_key} anchors")
-    require(set(data["scenarios"]) == {"libero", "no-libero", "libero-ds", "no-libero-ds", "open-smart-special"},
+    require(set(data["scenarios"]) == {"libero", "no-libero", "open-smart-special"},
             "missing lineup variant")
 
     initial = data["rotations"]["1"]
@@ -125,8 +125,8 @@ def main():
                     require(position_of(slots, "S") == int(rotation), label + ": setter moved to wrong slot")
                     require(next_rotation(int(rotation), 3) == position_of(slots, "OP"),
                             label + ": opposite moved out of rotational order")
-                    require(("DS" in occupants) == variant.endswith("-ds"), label + ": DS mismatch")
-                    require(("OH2" in occupants) != variant.endswith("-ds"), label + ": outside 2 mismatch")
+                    require("DS" not in occupants, label + ": defensive specialist must not appear")
+                    require("OH2" in occupants, label + ": outside 2 must stay in the lineup")
                     if variant.startswith("no-") or variant == "open-smart-special":
                         require("L" not in occupants, label + ": Libero in no-Libero lineup")
                         require({"MB1", "MB2"} <= set(occupants), label + ": both middles must remain")
@@ -172,7 +172,7 @@ def main():
                         require(set(start) == set(end) == set(occupants),
                                 label + f": {phase['key']} changes players during a rally")
                     scenarios_checked += 1
-    require(scenarios_checked == 180 and steps_checked == 900,
+    require(scenarios_checked == 108 and steps_checked == 540,
             "database does not cover all enumerated 5–1 contexts")
     print(f"Verified {scenarios_checked} contexts / {steps_checked} moments against the pinned source and rotation rules")
 
