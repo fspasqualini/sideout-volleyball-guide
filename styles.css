@@ -8,6 +8,9 @@
   --mint: #e7f4fc;
   --line: #b7d4e6;
   --teal: #356986;
+  --selected-red: #bd2632;
+  --ball-orange: #ff8624;
+  --ball-outline: #7c3000;
   --shadow: 0 24px 70px rgba(31, 83, 115, 0.11);
 }
 * {
@@ -814,8 +817,8 @@ h1 em {
   height: 49px;
   color: white;
   background: var(--orange);
-  border: 4px solid white;
-  box-shadow: 0 7px 18px rgba(31, 83, 115, 0.25);
+  border: 5px solid var(--selected-red);
+  box-shadow: 0 0 0 3px white, 0 7px 18px rgba(31, 83, 115, 0.25);
   font-size: 16px;
 }
 .start-token {
@@ -891,10 +894,15 @@ h1 em {
 }
 .legend-target {
   background: var(--orange);
+  border: 2px solid var(--selected-red);
 }
 .legend-line {
   width: 19px;
-  border-top: 3px dashed var(--orange);
+  border-top: 3px dashed var(--selected-red);
+}
+.legend-ball {
+  background: var(--ball-orange);
+  border: 2px solid var(--ball-outline);
 }
 .timeline {
   display: grid;
@@ -1530,14 +1538,14 @@ h1 em {
 }
 .rally-ball {
   position: absolute;
-  z-index: 4;
-  width: 17px;
-  height: 17px;
+  z-index: 6;
+  width: 24px;
+  height: 24px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: #f5fcff;
-  border: 2px solid #4c9ac2;
-  box-shadow: 0 2px 8px rgba(31, 83, 115, .3);
+  background: var(--ball-orange);
+  border: 3px solid var(--ball-outline);
+  box-shadow: 0 0 0 3px white, 0 3px 10px rgba(80, 43, 9, .35);
   pointer-events: none;
 }
 .rally-ball[hidden] { display: none; }
@@ -1916,6 +1924,10 @@ h1 em {
   position: sticky;
   top: 16px;
   padding: 21px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 .panel-summary {
   display: none;
@@ -1932,6 +1944,18 @@ h1 em {
   margin-top: 8px;
   padding: 3px 0;
 }
+.jump-to-rally {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--orange-pale);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: left;
+}
+.jump-to-rally:hover { border-color: var(--orange); }
 .controls-panel .control-group {
   padding-top: 19px;
   margin-bottom: 18px;
@@ -1982,32 +2006,27 @@ h1 em {
   width: 43px;
   height: 43px;
 }
-.timeline-heading {
+.rally-group .rally-controls { flex-wrap: wrap; }
+.rally-group .rally-speed { width: 100%; margin-left: 0; justify-content: space-between; }
+.rally-group .timeline { grid-template-columns: 1fr; gap: 5px; margin-top: 13px; }
+.rally-group .timeline button {
+  min-height: 48px;
+  padding: 8px 9px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-top: 26px;
-  border-top: 1px solid var(--line);
-  padding-top: 22px;
-  color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 700;
+  gap: 8px;
+  color: var(--ink);
 }
-.timeline-heading .kicker {
-  margin: 0;
-}
-.court-panel .timeline {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 13px;
-}
-.court-panel .timeline button {
-  min-height: 67px;
-  padding: 12px 10px;
-}
-.court-panel .timeline .step-title {
-  font-size: 12px;
-  line-height: 1.2;
+.rally-group .timeline .step-num { flex: 0 0 40px; margin: 0; }
+.rally-group .timeline .step-title { font-size: 11px; line-height: 1.25; }
+.rally-preview-note {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--ball-orange);
+  background: #fff5eb;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1.4;
 }
 .court-panel .instruction-panel {
   margin-top: 17px;
@@ -2071,6 +2090,8 @@ h1 em {
   .controls-panel {
     position: static;
     padding: 0;
+    max-height: none;
+    overflow: visible;
   }
   .panel-summary {
     display: flex;
@@ -2127,12 +2148,9 @@ h1 em {
   .court-panel {
     padding: 22px 18px;
   }
-  .court-panel .timeline {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .court-panel .timeline button {
-    min-height: 58px;
-  }
+  .rally-group .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rally-group .timeline button { display: block; min-height: 64px; }
+  .rally-group .timeline .step-num { margin-bottom: 3px; }
   .court {
     height: 310px;
   }

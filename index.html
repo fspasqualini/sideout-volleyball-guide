@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=4" />
+    <link rel="stylesheet" href="./styles.css?v=5" />
     <title>Sideout — Find your place on court</title>
   </head>
   <body>
@@ -143,6 +143,7 @@
                     Share this view <span aria-hidden="true">↗</span>
                   </button>
                 </div>
+                <button class="jump-to-rally" id="jump-to-rally" type="button">Go to 03 · Follow the rally ↓</button>
                 <fieldset class="control-group">
                   <legend>01 <span>Choose your player role</span></legend>
                   <div class="role-options" id="role-options"></div>
@@ -164,6 +165,22 @@
                     Preview my next rotation <span aria-hidden="true">↻</span>
                   </button>
                 </fieldset>
+                <fieldset class="control-group rally-group">
+                  <legend>03 <span>Follow the rally</span></legend>
+                  <p class="control-help">Choose one of the eight moments, or play the whole rally.</p>
+                  <div class="rally-controls" aria-label="Rally animation controls">
+                    <button type="button" id="rally-back" aria-label="Previous phase">←</button>
+                    <button type="button" id="rally-play" aria-label="Play rally">▶</button>
+                    <button type="button" id="rally-next" aria-label="Next phase">→</button>
+                    <label class="rally-speed">Speed <select id="rally-speed" aria-label="Animation speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+                  </div>
+                  <p class="rally-preview-note" id="rally-preview-note"></p>
+                  <label class="rally-scrub-label" for="rally-scrub">Rally timeline</label>
+                  <input id="rally-scrub" class="rally-scrub" type="range" min="0" max="700" step="1" value="0" aria-label="Rally timeline" />
+                  <div class="timeline" id="timeline" aria-label="Steps through the play"></div>
+                  <p class="rally-event" id="rally-event" aria-live="polite"></p>
+                  <p class="rally-cycle-note" id="rally-cycle-note"></p>
+                </fieldset>
                   </div>
                 </details>
               </aside>
@@ -179,25 +196,6 @@
                     >Back-row player</span
                   >
                 </div>
-                <div class="timeline-heading">
-                  <span class="kicker">FOLLOW THE RALLY</span>
-                  <span>Choose a moment</span>
-                </div>
-                <div class="rally-controls" aria-label="Rally animation controls">
-                  <button type="button" id="rally-back" aria-label="Previous phase">←</button>
-                  <button type="button" id="rally-play" aria-label="Play rally">▶</button>
-                  <button type="button" id="rally-next" aria-label="Next phase">→</button>
-                  <label class="rally-speed">Speed <select id="rally-speed" aria-label="Animation speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
-                </div>
-                <label class="rally-scrub-label" for="rally-scrub">Rally timeline</label>
-                <input id="rally-scrub" class="rally-scrub" type="range" min="0" max="700" step="1" value="0" aria-label="Rally timeline" />
-                <p class="rally-event" id="rally-event" aria-live="polite"></p>
-                <div
-                  class="timeline"
-                  id="timeline"
-                  aria-label="Steps through the play"
-                ></div>
-                <p class="rally-cycle-note" id="rally-cycle-note"></p>
                 <div class="court-view-options">
                   <button id="opponent-toggle" type="button" aria-pressed="false">Show the other team</button>
                   <span id="opponent-note" hidden>Other team: illustrative 5–1 example, not their real lineup.</span>
@@ -219,7 +217,6 @@
                     <div class="attack-line"></div>
                     <div class="court-positions" id="court-positions"></div>
                     <div class="team-players" id="team-players"></div>
-                    <div class="rally-ball" id="rally-ball" aria-hidden="true"></div>
                     <svg
                       class="movement-svg"
                       id="movement-svg"
@@ -237,14 +234,14 @@
                           markerHeight="12"
                           orient="auto"
                         >
-                          <path d="M 0 0 L 12 6 L 0 12 z" fill="#176f9e" />
+                          <path d="M 0 0 L 12 6 L 0 12 z" fill="#bd2632" />
                         </marker>
                       </defs>
                       <path
                         id="movement-path"
                         d=""
                         fill="none"
-                        stroke="#176f9e"
+                        stroke="#bd2632"
                         stroke-width="7"
                         stroke-linecap="round"
                         stroke-dasharray="11 12"
@@ -262,12 +259,14 @@
                   <div class="server-area" id="server-area">
                     <span id="server-marker">●</span><span>SERVER</span>
                   </div>
+                  <div class="rally-ball" id="rally-ball" aria-hidden="true"></div>
                 </div>
                 <div class="court-legend">
                   <span
                     ><i class="legend-dot legend-start"></i> Previous phase</span
                   ><span><i class="legend-dot legend-target"></i> You now</span
-                  ><span><i class="legend-line"></i> Your path</span>
+                  ><span><i class="legend-line"></i> Your path</span
+                  ><span><i class="legend-dot legend-ball"></i> Ball</span>
                 </div>
                 <div class="rotation-key" aria-label="Numbered court positions">
                   <span><b>4</b> left front</span
@@ -563,7 +562,7 @@
         ><a href="#top">Back to top ↑</a>
       </footer>
     </div>
-    <script src="./i18n.js?v=4" defer></script>
-    <script src="./app.js?v=4" defer></script>
+    <script src="./i18n.js?v=5" defer></script>
+    <script src="./app.js?v=5" defer></script>
   </body>
 </html>

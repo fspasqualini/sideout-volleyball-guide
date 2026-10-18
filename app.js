@@ -166,7 +166,7 @@ const state = {
   position: valid(Number(params.get("position")), [1, 2, 3, 4, 5, 6], 1),
   serve: valid(params.get("serve"), ["ours", "theirs"], "theirs"),
   rules: valid(params.get("rules"), ["fivb", "usav", "trial"], "fivb"),
-  opponents: ["1", "true"].includes(params.get("opponents")),
+  opponents: params.has("opponents") ? ["1", "true"].includes(params.get("opponents")) : true,
   step: valid(
     params.has("step") ? Number(params.get("step")) : null,
     [0, 1, 2, 3, 4, 5, 6, 7],
@@ -192,6 +192,11 @@ let playhead = state.step;
 let playing = false;
 let lastFrameTime = 0;
 let animationFrame = 0;
+let playbackMode = "hold";
+let playbackElapsed = 0;
+const teachingHoldMs = 1500;
+const teachingMoveMs = 1350;
+const teachingPlayback = () => state.lineup === "open-smart-special";
 const phases = () => schemeDatabase.rallyPhases[state.serve];
 const phaseTitle = (phase) => rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
 const ownerLabel = (phase) => phase.owner === "none" ? "" : phase.owner === "ours"
@@ -557,7 +562,9 @@ function renderPlayhead() {
   const sequence = phases();
   const fromIndex = Math.min(Math.floor(playhead), sequence.length - 1);
   const toIndex = Math.min(fromIndex + 1, sequence.length - 1);
-  const fraction = reducedMotion.matches ? 0 : playhead - fromIndex;
+  const rawFraction = playhead - fromIndex;
+  const fraction = reducedMotion.matches ? 0 : rawFraction;
+  const travel = teachingPlayback() ? fraction * fraction * (3 - 2 * fraction) : fraction;
   const from = phasePositions(team, sequence[fromIndex]);
   const to = phasePositions(team, sequence[toIndex]);
   const place = (element, point) => {
@@ -565,8 +572,8 @@ function renderPlayhead() {
     element.style.top = `${point.y}%`;
   };
   const interpolate = (a, b) => ({
-    x: a.x + (b.x - a.x) * fraction,
-    y: a.y + (b.y - a.y) * fraction,
+    x: a.x + (b.x - a.x) * travel,
+    y: a.y + (b.y - a.y) * travel,
   });
   document.querySelectorAll("#team-players [data-player]").forEach((marker) => {
     const id = marker.dataset.player;
@@ -583,7 +590,7 @@ function renderPlayhead() {
   }
   const selected = team.selected;
   if (selected) place($("target-token"), interpolate(from[selected], to[selected]));
-  const pathIndex = fraction > 0 ? toIndex : fromIndex;
+  const pathIndex = travel > 0 ? toIndex : fromIndex;
   const previous = phasePositions(team, sequence[Math.max(0, pathIndex - 1)]);
   const destination = phasePositions(team, sequence[pathIndex]);
   const origin = selected && previous[selected];
@@ -598,27 +605,44 @@ function renderPlayhead() {
     $("movement-path").setAttribute("d", `M ${origin.x * 10} ${origin.y * 10} L ${end.x * 10} ${end.y * 10}`);
   }
   const ballByEvent = {
-    rotation: null, serve: { x: 82, y: 106 },
+    rotation: null, serve: { x: 82, y: 105 },
     receive: { x: 45, y: 67 }, "receive-set": { x: 75, y: 22 },
     "receive-attack": { x: 37, y: 10 }, "transition-dig": { x: 48, y: 68 },
     "transition-set": { x: 75, y: 22 }, counterattack: { x: 37, y: 10 },
   };
-  const phase = sequence[fromIndex];
-  const ball = ballByEvent[phase.key];
-  $("rally-ball").hidden = !ball;
-  if (ball) {
-    const isOpponent = phase.owner === "theirs" && state.opponents;
-    const parent = isOpponent ? $("opponent-court") : $("court");
-    if ($("rally-ball").parentElement !== parent) parent.appendChild($("rally-ball"));
-    place($("rally-ball"), isOpponent ? { x: 100 - ball.x, y: 100 - ball.y }
-      : phase.owner === "theirs" ? { x: 50, y: -4 } : ball);
-  }
+  const stage = document.querySelector(".court-stage").getBoundingClientRect();
+  const ourCourt = $("court").getBoundingClientRect();
+  const opposingArea = state.opponents
+    ? $("opponent-court").getBoundingClientRect()
+    : document.querySelector(".opponent-strip").getBoundingClientRect();
+  const ballPoint = (phase) => {
+    const local = ballByEvent[phase.key] || ballByEvent.serve;
+    const ours = (phase.owner === "none" ? state.serve : phase.owner) === "ours";
+    const rect = ours ? ourCourt : opposingArea;
+    return {
+      x: rect.left - stage.left + (ours ? local.x : 100 - local.x) * rect.width / 100,
+      y: rect.top - stage.top + (ours ? local.y * rect.height / 100
+        : state.opponents ? Math.max(0, 100 - local.y) * rect.height / 100 : rect.height / 2),
+    };
+  };
+  $("rally-ball").hidden = fromIndex === 0 && travel === 0;
+  const ballFrom = ballPoint(sequence[fromIndex]);
+  const ballTo = ballPoint(sequence[toIndex]);
+  const arc = reducedMotion.matches ? 0 : Math.sin(Math.PI * travel) *
+    Math.min(54, Math.hypot(ballTo.x - ballFrom.x, ballTo.y - ballFrom.y) * 0.11);
+  $("rally-ball").style.left = `${ballFrom.x + (ballTo.x - ballFrom.x) * travel}px`;
+  $("rally-ball").style.top = `${ballFrom.y + (ballTo.y - ballFrom.y) * travel - arc}px`;
   $("rally-scrub").value = String(Math.round(playhead * 100));
   $("rally-scrub").setAttribute("aria-valuetext", `${ownerLabel(sequence[fromIndex]) ? `${ownerLabel(sequence[fromIndex])} · ` : ""}${phaseTitle(sequence[fromIndex])}`);
 }
 
 function renderTimeline() {
   const sequence = phases();
+  $("rally-preview-note").hidden = !teachingPlayback();
+  $("rally-preview-note").textContent = copy(
+    "Open smart special preview: each moment pauses before the next movement.",
+    "Anteprima Open smart special: ogni momento resta in vista prima del movimento successivo.",
+  );
   $("timeline").innerHTML = sequence
     .map(
       (phase, step) =>
@@ -742,16 +766,44 @@ function tickRally(time) {
   if (!playing) return;
   if (lastFrameTime) {
     const speed = Number($("rally-speed").value);
-    playhead = Math.min(phases().length - 1, playhead + (time - lastFrameTime) * speed / 1650);
-    const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
-    if (activeStep !== state.step) {
-      state.step = activeStep;
-      render();
-    } else renderPlayhead();
-    if (playhead >= phases().length - 1) {
-      pauseRally();
-      renderPlayhead();
-      return;
+    if (teachingPlayback()) {
+      playbackElapsed += Math.min(time - lastFrameTime, 120) * speed;
+      if (playbackMode === "hold" && playbackElapsed >= teachingHoldMs) {
+        playbackElapsed -= teachingHoldMs;
+        playbackMode = "move";
+      }
+      if (playbackMode === "move") {
+        playhead = Math.min(phases().length - 1,
+          state.step + Math.min(1, playbackElapsed / teachingMoveMs));
+        if (playbackElapsed >= teachingMoveMs) {
+          state.step = Math.min(phases().length - 1, state.step + 1);
+          playhead = state.step;
+          playbackElapsed = 0;
+          playbackMode = "hold";
+          render();
+          const panel = document.querySelector(".controls-panel");
+          const active = $("timeline").querySelector(".active");
+          if (window.innerWidth > 780 && active) {
+            const panelBox = panel.getBoundingClientRect();
+            const activeBox = active.getBoundingClientRect();
+            if (activeBox.bottom > panelBox.bottom - 16)
+              panel.scrollTop += activeBox.bottom - panelBox.bottom + 16;
+          }
+          if (state.step === phases().length - 1) { pauseRally(); return; }
+        } else renderPlayhead();
+      } else renderPlayhead();
+    } else {
+      playhead = Math.min(phases().length - 1, playhead + (time - lastFrameTime) * speed / 1650);
+      const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
+      if (activeStep !== state.step) {
+        state.step = activeStep;
+        render();
+      } else renderPlayhead();
+      if (playhead >= phases().length - 1) {
+        pauseRally();
+        renderPlayhead();
+        return;
+      }
     }
   }
   lastFrameTime = time;
@@ -761,6 +813,11 @@ function tickRally(time) {
 $("rally-play").addEventListener("click", () => {
   if (playing) { pauseRally(); return; }
   if (playhead >= phases().length - 1) seekRally(0);
+  if (teachingPlayback()) {
+    const fraction = playhead - Math.floor(playhead);
+    playbackMode = fraction > 0 ? "move" : "hold";
+    playbackElapsed = fraction > 0 ? fraction * teachingMoveMs : 0;
+  }
   playing = true;
   renderTimeline();
   animationFrame = requestAnimationFrame(tickRally);
@@ -810,6 +867,16 @@ document.addEventListener("click", (event) => {
 $("opponent-toggle").addEventListener("click", () => {
   state.opponents = !state.opponents;
   render();
+});
+
+$("jump-to-rally").addEventListener("click", () => {
+  const group = document.querySelector(".rally-group");
+  if (window.innerWidth > 780) {
+    const panel = document.querySelector(".controls-panel");
+    panel.scrollTop += group.getBoundingClientRect().top - panel.getBoundingClientRect().top - 16;
+  } else {
+    group.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+  }
 });
 
 $("rules-select").addEventListener("change", (event) => {
@@ -867,9 +934,9 @@ $("share-button").addEventListener("click", async () => {
 });
 
 const mobileNavigation = window.matchMedia("(max-width: 780px)");
-$("player-navigation").open = !mobileNavigation.matches;
+$("player-navigation").open = true;
 mobileNavigation.addEventListener("change", (event) => {
-  $("player-navigation").open = !event.matches;
+  if (!event.matches) $("player-navigation").open = true;
 });
 
 fetch("./data/schemes.json?v=4")
