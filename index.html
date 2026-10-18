@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f7f4eb" />
+    <meta name="theme-color" content="#f1f8fd" />
     <meta
       name="description"
       content="A visual, beginner-friendly guide to indoor volleyball rotations, roles, and where to move on serve and serve receive."
@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=3" />
+    <link rel="stylesheet" href="./styles.css?v=4" />
     <title>Sideout — Find your place on court</title>
   </head>
   <body>
@@ -164,14 +164,6 @@
                     Preview my next rotation <span aria-hidden="true">↻</span>
                   </button>
                 </fieldset>
-                <fieldset class="control-group">
-                  <legend>03 <span>What do you want to see?</span></legend>
-                  <div class="segmented focus-options" id="focus-options">
-                    <button type="button" data-focus="attack">Attack</button>
-                    <button type="button" data-focus="defense">Defense</button>
-                  </div>
-                  <p class="control-help focus-help">Pick attack or defense to jump to that movement. The timeline above the court shows the whole rally.</p>
-                </fieldset>
                   </div>
                 </details>
               </aside>
@@ -206,14 +198,24 @@
                   aria-label="Steps through the play"
                 ></div>
                 <p class="rally-cycle-note" id="rally-cycle-note"></p>
+                <div class="court-view-options">
+                  <button id="opponent-toggle" type="button" aria-pressed="false">Show the other team</button>
+                  <span id="opponent-note" hidden>Other team: illustrative 5–1 example, not their real lineup.</span>
+                </div>
                 <div class="court-stage">
                   <div class="opponent-strip">
                     <span>OTHER TEAM</span
                     ><span class="opponent-dots">●&nbsp; ●&nbsp; ●</span>
                   </div>
+                  <div class="opponent-court" id="opponent-court" hidden>
+                    <span class="court-team-label">OTHER TEAM</span>
+                    <div class="attack-line"></div>
+                    <div class="team-players" id="opponent-players"></div>
+                  </div>
                   <div class="net-label">NET</div>
                   <div class="net"></div>
                   <div class="court" id="court">
+                    <span class="court-team-label">OUR TEAM</span>
                     <div class="attack-line"></div>
                     <div class="court-positions" id="court-positions"></div>
                     <div class="team-players" id="team-players"></div>
@@ -235,14 +237,14 @@
                           markerHeight="12"
                           orient="auto"
                         >
-                          <path d="M 0 0 L 12 6 L 0 12 z" fill="#ee714e" />
+                          <path d="M 0 0 L 12 6 L 0 12 z" fill="#176f9e" />
                         </marker>
                       </defs>
                       <path
                         id="movement-path"
                         d=""
                         fill="none"
-                        stroke="#ee714e"
+                        stroke="#176f9e"
                         stroke-width="7"
                         stroke-linecap="round"
                         stroke-dasharray="11 12"
@@ -541,6 +543,11 @@
                 rel="noopener noreferrer"
                 >FIVB Coaches Manual ↗</a
               ><a
+                href="https://lombardia.federvolley.it/data-files/fipavlombardia/article_attachments/1_Indizioneeprogramma2Grado2026.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >FIPAV phase terminology ↗</a
+              ><a
                 href="https://rotazioni.volleyserve.it/"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -556,7 +563,7 @@
         ><a href="#top">Back to top ↑</a>
       </footer>
     </div>
-    <script src="./i18n.js?v=3" defer></script>
-    <script src="./app.js?v=3" defer></script>
+    <script src="./i18n.js?v=4" defer></script>
+    <script src="./app.js?v=4" defer></script>
   </body>
 </html>

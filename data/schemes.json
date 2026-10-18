@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
   "reference": {
     "name": "rotazionivolley: ricezione-a-3",
@@ -215,94 +215,126 @@
     "ours": [
       {
         "key": "rotation",
-        "view": 0
+        "owner": "none",
+        "view": 0,
+        "opponentView": 0
       },
       {
         "key": "serve",
-        "view": 1
+        "owner": "ours",
+        "view": 1,
+        "opponentView": 1
       },
       {
-        "key": "first-dig",
-        "view": 2
-      },
-      {
-        "key": "first-set",
-        "view": 3,
-        "mix": [
-          2,
-          3,
-          0.72
-        ]
-      },
-      {
-        "key": "first-attack",
-        "view": 3
-      },
-      {
-        "key": "second-dig",
-        "view": 4
-      },
-      {
-        "key": "second-set",
-        "view": 3,
-        "mix": [
-          4,
-          3,
-          0.68
-        ]
-      },
-      {
-        "key": "second-attack",
-        "view": 3
-      }
-    ],
-    "theirs": [
-      {
-        "key": "rotation",
-        "view": 0
-      },
-      {
-        "key": "serve",
-        "view": 1
-      },
-      {
-        "key": "pass",
+        "key": "receive",
+        "owner": "theirs",
         "view": 2,
-        "mix": [
+        "opponentView": 2,
+        "opponentMix": [
           1,
           2,
           0.22
         ]
       },
       {
-        "key": "first-set",
+        "key": "receive-set",
+        "owner": "theirs",
+        "view": 2,
+        "opponentView": 2
+      },
+      {
+        "key": "receive-attack",
+        "owner": "theirs",
+        "view": 2,
+        "opponentView": 3
+      },
+      {
+        "key": "transition-dig",
+        "owner": "ours",
+        "view": 2,
+        "mix": [
+          2,
+          3,
+          0.12
+        ],
+        "opponentView": 4
+      },
+      {
+        "key": "transition-set",
+        "owner": "ours",
         "view": 3,
+        "mix": [
+          2,
+          3,
+          0.72
+        ],
+        "opponentView": 4
+      },
+      {
+        "key": "counterattack",
+        "owner": "ours",
+        "view": 3,
+        "opponentView": 4
+      }
+    ],
+    "theirs": [
+      {
+        "key": "rotation",
+        "owner": "none",
+        "view": 0,
+        "opponentView": 0
+      },
+      {
+        "key": "serve",
+        "owner": "theirs",
+        "view": 1,
+        "opponentView": 1
+      },
+      {
+        "key": "receive",
+        "owner": "ours",
+        "view": 2,
         "mix": [
           1,
           2,
-          1
-        ]
+          0.22
+        ],
+        "opponentView": 2
       },
       {
-        "key": "first-attack",
-        "view": 3
+        "key": "receive-set",
+        "owner": "ours",
+        "view": 2,
+        "opponentView": 2
       },
       {
-        "key": "second-dig",
-        "view": 4
-      },
-      {
-        "key": "second-set",
+        "key": "receive-attack",
+        "owner": "ours",
         "view": 3,
-        "mix": [
-          4,
+        "opponentView": 2
+      },
+      {
+        "key": "transition-dig",
+        "owner": "theirs",
+        "view": 4,
+        "opponentView": 2
+      },
+      {
+        "key": "transition-set",
+        "owner": "theirs",
+        "view": 4,
+        "opponentView": 3,
+        "opponentMix": [
+          2,
           3,
-          0.68
+          0.72
         ]
       },
       {
-        "key": "second-attack",
-        "view": 3
+        "key": "counterattack",
+        "owner": "theirs",
+        "view": 4,
+        "opponentView": 3
       }
     ]
   },

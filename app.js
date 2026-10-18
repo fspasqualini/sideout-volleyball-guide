@@ -166,6 +166,7 @@ const state = {
   position: valid(Number(params.get("position")), [1, 2, 3, 4, 5, 6], 1),
   serve: valid(params.get("serve"), ["ours", "theirs"], "theirs"),
   rules: valid(params.get("rules"), ["fivb", "usav", "trial"], "fivb"),
+  opponents: ["1", "true"].includes(params.get("opponents")),
   step: valid(
     params.has("step") ? Number(params.get("step")) : null,
     [0, 1, 2, 3, 4, 5, 6, 7],
@@ -178,27 +179,28 @@ if (state.lineup === "open-smart-special" && state.role === "ds") state.role = "
 const $ = (id) => document.getElementById(id);
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const rallyTitles = {
-  rotation: ["Before the serve", "Prima della battuta"],
-  serve: ["Our serve", "La nostra battuta"],
-  "first-dig": ["Their attack · our dig", "Attacco avversario · difesa"],
-  "first-set": ["First set", "Prima alzata"],
-  "first-attack": ["First attack", "Primo attacco"],
-  "second-dig": ["Second defense", "Seconda difesa"],
-  "second-set": ["Second set", "Seconda alzata"],
-  "second-attack": ["Second attack", "Secondo attacco"],
-  pass: ["Serve reception", "Ricezione"],
+  rotation: ["Rotation positions", "Posizioni di rotazione"],
+  serve: ["Serve", "Battuta"],
+  receive: ["Serve reception", "Ricezione della battuta"],
+  "receive-set": ["Sideout set", "Alzata del cambio palla"],
+  "receive-attack": ["Sideout attack", "Attacco del cambio palla"],
+  "transition-dig": ["Dig · transition", "Difesa · transizione"],
+  "transition-set": ["Transition set", "Alzata della transizione"],
+  counterattack: ["Counterattack", "Contrattacco"],
 };
 let playhead = state.step;
 let playing = false;
 let lastFrameTime = 0;
 let animationFrame = 0;
 const phases = () => schemeDatabase.rallyPhases[state.serve];
-const phaseTitle = (phase) => phase.key === "serve" && state.serve === "theirs"
-  ? copy("Their serve", "Battuta avversaria")
-  : rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
-function phasePositions(team, phase) {
-  if (!phase.mix) return team.steps[phase.view].positions;
-  const [from, to, fraction] = phase.mix;
+const phaseTitle = (phase) => rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
+const ownerLabel = (phase) => phase.owner === "none" ? "" : phase.owner === "ours"
+  ? copy("Our team", "Noi") : copy("Other team", "Avversari");
+function phasePositions(team, phase, opponent = false) {
+  const view = opponent ? phase.opponentView : phase.view;
+  const mix = opponent ? phase.opponentMix : phase.mix;
+  if (!mix) return team.steps[view].positions;
+  const [from, to, fraction] = mix;
   const start = team.steps[from].positions;
   const end = team.steps[to].positions;
   return Object.fromEntries(Object.keys(start).map((id) => [id, {
@@ -254,6 +256,12 @@ function activeLineup() {
   };
 }
 
+function opponentLineup() {
+  // A generic P1 5–1 example, checked for the chosen rules but not a claim
+  // about the real opponents' roster or play calls.
+  return schemeDatabase.scenarios["no-libero"][state.serve === "ours" ? "theirs" : "ours"][state.rules]["1"];
+}
+
 function timingText() {
   if (state.serve === "ours") {
     return state.rules === "usav"
@@ -282,6 +290,9 @@ function stepCopy() {
         "Defend zone 6 in the middle back; call the ball and be ready to cover the next attack.",
         "Difendi in zona 6 al centro dietro; chiama la palla e preparati a coprire il prossimo attacco.");
     }
+    if (state.serve === "theirs" && state.role === "setter") return frontRow()
+      ? copy("Hold right front, read their set, and help block when they counterattack.", "Resta davanti a destra, leggi la loro alzata e aiuta a murare il contrattacco.")
+      : copy("Return to right-back defense after our attack. On our next first touch, run toward the setting area.", "Dopo il nostro attacco torna a difendere in zona 1. Al nostro prossimo primo tocco, vai verso la zona di alzata.");
     return frontRow() ? role.serveFront : role.serveBack;
   };
   const row = frontRow()
@@ -439,11 +450,6 @@ function renderOptions() {
       button.setAttribute("aria-pressed", String(active));
     });
   }
-  document.querySelectorAll("[data-focus]").forEach((button) => {
-    const active = button.dataset.focus === (phases()[state.step].key === "first-attack" ? "attack" : phases()[state.step].key === "second-dig" ? "defense" : "");
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
   $("lineup-help").textContent = state.lineup === "open-smart-special"
     ? copy("Coach's three-player receive: two outsides and the back-row middle. No Libero; the opposite covers only very short serves.", "Ricezione a tre del coach: due bande e il centrale dietro. Senza Libero; l'Opposto copre solo le battute cortissime.")
     : state.lineup === "libero"
@@ -451,7 +457,6 @@ function renderOptions() {
       : copy("Both middles stay on court, including in the back row.", "Entrambi i centrali restano in campo, anche in seconda linea.");
   $("lineup-options").setAttribute("aria-label", copy("Choose a team plan", "Scegli lo schema di squadra"));
   $("player-selection-summary").textContent = `${roleInfo(state.role).name} · ${copy("position", "posizione")} ${state.position}`;
-  $("focus-options").setAttribute("aria-label", copy("Choose attack or defense view", "Scegli vista attacco o difesa"));
   document.querySelector(".setup-bar").setAttribute("aria-label", copy("General game settings", "Impostazioni generali di gioco"));
   document.querySelector(".controls-panel").setAttribute("aria-label", copy("Player navigation", "Scelte del giocatore"));
   $("serve-options").setAttribute("aria-label", copy("Whose serve", "Chi batte"));
@@ -473,14 +478,30 @@ function renderOptions() {
   $("rules-select").value = state.rules;
   $("serve-help").textContent =
     state.serve === "ours"
-      ? copy("Their return comes next. Be ready to defend.", "Arriva il loro attacco: preparati a difendere.")
-      : copy("Your team receives first and tries to pass, set, and hit.", "La tua squadra riceve per prima e prova a ricevere, alzare e attaccare.");
+      ? copy("They receive and attack first; we defend and counterattack.", "Loro ricevono e attaccano per primi; noi difendiamo e contrattacchiamo.")
+      : copy("We receive and attack first; they defend and counterattack.", "Noi riceviamo e attacchiamo per primi; loro difendono e contrattaccano.");
   $("rules-help").textContent = timingText();
 }
 
 function renderCourt() {
   const team = activeLineup();
   const selected = team.selected;
+  const opponent = opponentLineup();
+  $("opponent-court").hidden = !state.opponents;
+  document.querySelector(".opponent-strip").hidden = state.opponents;
+  document.querySelector(".court-stage").classList.toggle("two-sides", state.opponents);
+  $("opponent-toggle").setAttribute("aria-pressed", String(state.opponents));
+  $("opponent-toggle").textContent = state.opponents
+    ? copy("Hide the other team", "Nascondi gli avversari")
+    : copy("Show the other team", "Mostra anche gli avversari");
+  $("opponent-note").hidden = !state.opponents;
+  $("opponent-note").textContent = copy(
+    "A1–A6 mark their rotation spots in an illustrative 5–1 lineup, not their real roster.",
+    "A1–A6 indicano le loro posizioni di rotazione in un 5–1 illustrativo, non la formazione reale.",
+  );
+  $("opponent-players").innerHTML = Object.entries(opponent.bySlot)
+    .map(([slot, id]) => `<div class="team-player opponent-player" data-player="${id}" aria-label="${copy("Other team", "Avversari")}: ${playerName(id)}, ${copy("position", "posizione")} ${slot}" title="${copy("Other team", "Avversari")}: ${playerName(id)}">A${slot}</div>`)
+    .join("");
   $("court-positions").innerHTML = Object.entries(positions)
     .map(
       ([number, pos]) =>
@@ -551,6 +572,15 @@ function renderPlayhead() {
     const id = marker.dataset.player;
     place(marker, interpolate(from[id], to[id]));
   });
+  if (state.opponents) {
+    const opponent = opponentLineup();
+    const opponentFrom = phasePositions(opponent, sequence[fromIndex], true);
+    const opponentTo = phasePositions(opponent, sequence[toIndex], true);
+    document.querySelectorAll("#opponent-players [data-player]").forEach((marker) => {
+      const point = interpolate(opponentFrom[marker.dataset.player], opponentTo[marker.dataset.player]);
+      place(marker, { x: 100 - point.x, y: 100 - point.y });
+    });
+  }
   const selected = team.selected;
   if (selected) place($("target-token"), interpolate(from[selected], to[selected]));
   const pathIndex = fraction > 0 ? toIndex : fromIndex;
@@ -568,17 +598,23 @@ function renderPlayhead() {
     $("movement-path").setAttribute("d", `M ${origin.x * 10} ${origin.y * 10} L ${end.x * 10} ${end.y * 10}`);
   }
   const ballByEvent = {
-    rotation: null, serve: { x: 58, y: -5 },
-    "first-dig": { x: 48, y: 70 }, "second-dig": { x: 48, y: 70 },
-    pass: { x: 45, y: 66 }, "first-set": { x: 75, y: 22 },
-    "second-set": { x: 75, y: 22 }, "first-attack": { x: 37, y: 9 },
-    "second-attack": { x: 37, y: 9 },
+    rotation: null, serve: { x: 82, y: 106 },
+    receive: { x: 45, y: 67 }, "receive-set": { x: 75, y: 22 },
+    "receive-attack": { x: 37, y: 10 }, "transition-dig": { x: 48, y: 68 },
+    "transition-set": { x: 75, y: 22 }, counterattack: { x: 37, y: 10 },
   };
-  const ball = ballByEvent[sequence[fromIndex].key];
+  const phase = sequence[fromIndex];
+  const ball = ballByEvent[phase.key];
   $("rally-ball").hidden = !ball;
-  if (ball) place($("rally-ball"), ball);
+  if (ball) {
+    const isOpponent = phase.owner === "theirs" && state.opponents;
+    const parent = isOpponent ? $("opponent-court") : $("court");
+    if ($("rally-ball").parentElement !== parent) parent.appendChild($("rally-ball"));
+    place($("rally-ball"), isOpponent ? { x: 100 - ball.x, y: 100 - ball.y }
+      : phase.owner === "theirs" ? { x: 50, y: -4 } : ball);
+  }
   $("rally-scrub").value = String(Math.round(playhead * 100));
-  $("rally-scrub").setAttribute("aria-valuetext", phaseTitle(sequence[fromIndex]));
+  $("rally-scrub").setAttribute("aria-valuetext", `${ownerLabel(sequence[fromIndex]) ? `${ownerLabel(sequence[fromIndex])} · ` : ""}${phaseTitle(sequence[fromIndex])}`);
 }
 
 function renderTimeline() {
@@ -586,32 +622,39 @@ function renderTimeline() {
   $("timeline").innerHTML = sequence
     .map(
       (phase, step) =>
-        `<button type="button" class="${state.step === step ? "active" : ""}" data-step="${step}" aria-pressed="${state.step === step}"><span class="step-num">0${step + 1}</span><span class="step-title">${phaseTitle(phase)}</span></button>`,
+        `<button type="button" class="${state.step === step ? "active" : ""}" data-step="${step}" aria-pressed="${state.step === step}"><span class="step-num">0${step + 1}${step === 1 || step >= 5 ? " · K2" : step >= 2 ? " · K1" : ""}</span><span class="step-title">${ownerLabel(phase) ? `${ownerLabel(phase)} · ` : ""}${phaseTitle(phase)}</span></button>`,
     )
     .join("");
   $("rally-cycle-note").textContent = copy(
-    "If the ball returns after the second attack, repeat: defense → set → attack.",
-    "Se la palla torna dopo il secondo attacco, ripeti: difesa → alzata → attacco.",
+    "K1 (sideout): serve reception → set → attack. K2 (break point): serve, defend the attack → set → counterattack. If the ball returns, continue the transition cycle.",
+    "K1 (cambio palla): ricezione della battuta → alzata → attacco. K2 (fase break point): battuta, difesa dell’attacco → alzata → contrattacco. Se la palla torna, la transizione continua.",
   );
   const phase = sequence[state.step];
   const originalStep = state.step;
   state.step = phase.view;
   const instruction = stepCopy();
   state.step = originalStep;
-  const firstTouch = phase.key === "pass"
-    ? copy("A serve pass starts when the other team serves. Guide that ball toward the setter.", "La ricezione parte dalla battuta avversaria. Indirizza quella palla al palleggiatore.")
-    : phase.key === "first-dig" || phase.key === "second-dig"
-      ? copy("A dig follows an opponent's attack. Keep the ball alive, then build the next play.", "La difesa segue un attacco avversario. Tieni viva la palla, poi costruisci l'azione successiva.")
+  const firstTouch = phase.key === "receive"
+    ? copy("Serve reception is the first touch after a serve.", "La ricezione è il primo tocco dopo la battuta.")
+    : phase.key === "transition-dig"
+      ? copy("Defense is the first touch after an attack, not after a serve.", "La difesa è il primo tocco dopo un attacco, non dopo una battuta.")
       : "";
-  $("rally-event").textContent = phase.key === "second-attack"
-    ? copy("If the ball comes back, repeat from second defense. These later movements are illustrative.", "Se la palla torna, riprendi dalla seconda difesa. Questi spostamenti successivi sono illustrativi.")
-    : firstTouch || (state.lineup === "open-smart-special" && state.step > 2
-    ? copy("Attack and defense movement is an illustrative adaptation; the coach's 2015 diagrams cover reception only.", "Gli spostamenti di attacco e difesa sono adattamenti illustrativi; gli schemi del coach del 2015 mostrano solo la ricezione.")
-    : copy("All six markers move between checked scheme positions; intermediate motion and the ball are illustrative.", "Tutti e sei i giocatori si spostano tra posizioni verificate; i movimenti intermedi e la palla sono illustrativi."));
+  const provenance = state.step >= 3
+    ? state.lineup === "open-smart-special"
+      ? copy("Attack and defense paths are illustrative adaptations; the coach's 2015 diagrams document reception only.", "I percorsi di attacco e difesa sono adattamenti illustrativi; gli schemi del coach del 2015 documentano solo la ricezione.")
+      : copy("Attack and defense positions adapt the published example; travel paths and the ball are illustrative.", "Le posizioni di attacco e difesa adattano l'esempio pubblicato; i percorsi intermedi e la palla sono illustrativi.")
+    : copy("Player identities and service positions come from checked scheme data.", "Identità dei giocatori e posizioni alla battuta provengono dagli schemi verificati.");
+  $("rally-event").textContent = `${firstTouch ? `${firstTouch} ` : ""}${provenance}`;
   $("instruction-kicker").textContent =
     `${state.lang === "it" ? "PASSO" : "STEP"} 0${state.step + 1} · ${roleInfo(state.role).name.toUpperCase()}`;
-  $("instruction-title").textContent = phaseTitle(phase);
-  $("instruction-body").textContent = `${firstTouch ? `${firstTouch} ` : ""}${instruction.body}`;
+  $("instruction-title").textContent = `${ownerLabel(phase) ? `${ownerLabel(phase)} · ` : ""}${phaseTitle(phase)}`;
+  const opposingAction = phase.owner === "theirs" && phase.key !== "serve"
+    ? phase.key === "receive" ? copy("They receive; we take our defensive shape. ", "Loro ricevono; noi ci disponiamo in difesa. ")
+      : phase.key === "receive-set" || phase.key === "transition-set" ? copy("They set; read the setter and stay ready to defend. ", "Loro alzano; leggi il palleggiatore e preparati a difendere. ")
+        : phase.key === "transition-dig" ? copy("They dig our attack; move back into defense. ", "Loro difendono il nostro attacco; torna in difesa. ")
+          : copy("They attack; keep your defensive responsibility. ", "Loro attaccano; mantieni il tuo compito difensivo. ")
+    : "";
+  $("instruction-body").textContent = `${opposingAction}${instruction.body}`;
   $("instruction-icon").textContent = invalidLibero()
     ? "!"
     : ["◎", "⇢", "↗", "✦", "↑", "↓", "✦", "↑"][state.step];
@@ -747,9 +790,6 @@ document.addEventListener("click", (event) => {
     state.lang = button.dataset.lang;
     render();
   }
-  if (button.dataset.focus) {
-    seekRally(button.dataset.focus === "attack" ? 4 : 5);
-  }
   if (button.dataset.position) {
     pauseRally();
     state.position = Number(button.dataset.position);
@@ -765,6 +805,11 @@ document.addEventListener("click", (event) => {
   if (button.dataset.step) {
     seekRally(Number(button.dataset.step));
   }
+});
+
+$("opponent-toggle").addEventListener("click", () => {
+  state.opponents = !state.opponents;
+  render();
 });
 
 $("rules-select").addEventListener("change", (event) => {
@@ -827,13 +872,13 @@ mobileNavigation.addEventListener("change", (event) => {
   $("player-navigation").open = !event.matches;
 });
 
-fetch("./data/schemes.json?v=3")
+fetch("./data/schemes.json?v=4")
   .then((response) => {
     if (!response.ok) throw new Error(`Court database returned ${response.status}`);
     return response.json();
   })
   .then((database) => {
-    if (database.schemaVersion !== 3) throw new Error("Unsupported court database version");
+    if (database.schemaVersion !== 4) throw new Error("Unsupported court database version");
     schemeDatabase = database;
     nextPosition = database.nextPosition;
     previousPosition = Object.fromEntries(

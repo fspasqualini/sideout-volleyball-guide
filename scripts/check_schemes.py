@@ -50,7 +50,7 @@ def main():
     if args.coach_pdf:
         require(hashlib.sha256(args.coach_pdf.read_bytes()).hexdigest() == coach["sourcePdfSha256"],
                 "local coach PDF differs from transcribed source")
-    require(data["schemaVersion"] == 3, "unsupported database schema")
+    require(data["schemaVersion"] == 4, "unsupported database schema")
     require(data["rotationOrder"] == ROTATION_ORDER, "rotation sequence differs from FIVB 7.6")
     require(data["nextPosition"] == {str(k): v for k, v in NEXT_POSITION.items()},
             "sideout rotation differs from FIVB 7.6")
@@ -60,16 +60,21 @@ def main():
         require(phases[0]["key"] == "rotation" and phases[1]["key"] == "serve",
                 f"{serve}: rally must start with the serve")
         phase_keys = [phase["key"] for phase in phases]
-        require(("pass" in phase_keys) == (serve == "theirs"), f"{serve}: serve pass side changed")
-        require(phase_keys[2:] == (["first-dig"] if serve == "ours" else ["pass"])
-                + ["first-set", "first-attack", "second-dig", "second-set", "second-attack"],
-                f"{serve}: incomplete rally")
+        require(phase_keys == ["rotation", "serve", "receive", "receive-set", "receive-attack",
+                               "transition-dig", "transition-set", "counterattack"],
+                f"{serve}: incomplete ball-order rally")
+        receiver = "theirs" if serve == "ours" else "ours"
+        require([phase["owner"] for phase in phases] ==
+                ["none", serve, receiver, receiver, receiver, serve, serve, serve],
+                f"{serve}: ball owner changed out of order")
         for phase in phases:
             require(0 <= phase["view"] < 5, f"{serve}: phase outside checked court snapshots")
-            if "mix" in phase:
-                start, end, fraction = phase["mix"]
-                require(0 <= start < 5 and 0 <= end < 5 and 0 <= fraction <= 1,
-                        f"{serve}: invalid interpolation anchors")
+            require(0 <= phase["opponentView"] < 5, f"{serve}: opponent phase outside checked snapshots")
+            for mix_key in ("mix", "opponentMix"):
+                if mix_key in phase:
+                    start, end, fraction = phase[mix_key]
+                    require(0 <= start < 5 and 0 <= end < 5 and 0 <= fraction <= 1,
+                            f"{serve}: invalid {mix_key} anchors")
     require(set(data["scenarios"]) == {"libero", "no-libero", "libero-ds", "no-libero-ds", "open-smart-special"},
             "missing lineup variant")
 

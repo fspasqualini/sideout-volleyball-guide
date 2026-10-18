@@ -26,14 +26,19 @@ each moment uses in each rule set. The FIVB serving team may switch into its
 defensive shape before service contact; the USA Volleyball example stays in a
 legal serving arrangement until contact. The 2026 trial is a separate choice.
 
-`rallyPhases` orders eight on-screen events for either serve side. Each event
-points to one of the five checked court moments. A few short intermediate
-events interpolate between two checked moments; these are illustrative travel
-paths, not additional source diagrams. The ball cue is also illustrative.
-The serve-receive pass occurs only when the other team serves. A dig follows
-an opponent attack and is distinct from receiving a serve. The second set and
-attack reuse the checked attack shape after the second defense; they are
-illustrative continuation moments, not new coaching diagrams.
+`rallyPhases` orders eight on-screen events for either serve side. Moments 3–5
+belong to the receiving team's K1 (reception, set, attack); moments 6–8 belong
+to the serving team's K2 (defense, set, counterattack), which starts with the
+serve at moment 2. Each event declares
+the ball owner and points to one of five checked court moments for our team.
+The optional opponent view uses the opposite-serve, no-Libero P1 example and
+its separately declared `opponentView` anchor. This is a structurally checked
+example, not a reconstruction of a real opponent's lineup or tactics. A few
+short intermediate events interpolate between checked moments; these travel
+paths and the ball cue are illustrative. The serve-receive pass follows a
+serve; a dig follows an attack and is distinct from receiving a serve. Later
+sets and attacks reuse checked attack shapes as illustrative continuation
+moments, not new coaching diagrams.
 
 `scripts/build_schemes.py` generates the database from the pinned source JSON
 and `references/coach-open-smart-special/receive.json`. The latter contains
