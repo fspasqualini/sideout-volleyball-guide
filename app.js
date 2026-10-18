@@ -192,10 +192,8 @@ let playhead = state.step;
 let playing = false;
 let lastFrameTime = 0;
 let animationFrame = 0;
-let playbackMode = "hold";
-let playbackElapsed = 0;
-const teachingHoldMs = 1500;
-const teachingMoveMs = 1350;
+// Time between touches: slow enough to follow the routes, without freezing at each touch.
+const teachingLegMs = [1800, 2600, 1900, 1800, 2400, 1900, 1800];
 const teachingPlayback = () => state.lineup === "open-smart-special";
 const phases = () => schemeDatabase.rallyPhases[state.serve];
 const phaseTitle = (phase) => rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
@@ -212,6 +210,51 @@ function phasePositions(team, phase, opponent = false) {
     x: start[id].x + (end[id].x - start[id].x) * fraction,
     y: start[id].y + (end[id].y - start[id].y) * fraction,
   }]));
+}
+function rallyPositions(team, sequence, index, opponent = false) {
+  const points = phasePositions(team, sequence[index], opponent);
+  if (!teachingPlayback()) return points;
+  const receiving = opponent ? state.serve === "ours" : state.serve === "theirs";
+  const settingSpot = team.steps[3].positions.S;
+  let fraction = 0;
+  if (receiving && index === 2) fraction = 0.78;
+  if (receiving && index === 3) fraction = 1;
+  if (!receiving && index === 5) fraction = 0.38;
+  if (!receiving && index === 6) fraction = 1;
+  if (!fraction) return points;
+  // The coach's transcription fixes the serve-contact stack; the setter's
+  // post-contact route is an illustrative bridge to the checked attack view.
+  const start = receiving
+    ? phasePositions(team, sequence[1], opponent).S
+    : phasePositions(team, sequence[4], opponent).S;
+  return { ...points, S: {
+    x: start.x + (settingSpot.x - start.x) * fraction,
+    y: start.y + (settingSpot.y - start.y) * fraction,
+  } };
+}
+
+function rallyTouch(team, sequence, index, opponent = false) {
+  const points = rallyPositions(team, sequence, index, opponent);
+  if (index === 0 || index === 1) {
+    const server = points[team.bySlot["1"]];
+    return { x: server.x, y: Math.min(server.y, 105) };
+  }
+  // Show the second touch just beside the setter's hands so both markers stay legible.
+  if (index === 3 || index === 6) return { x: points.S.x + 7, y: points.S.y - 5 };
+  const slots = index === 4 || index === 7 ? ["4", "3", "2"] : ["5", "6", "1"];
+  const target = index === 4 || index === 7 ? { x: 35, y: 15 } : { x: 50, y: 65 };
+  const candidates = slots.map((slot) => team.bySlot[slot]).filter((id) => id !== "S" && points[id]);
+  // In a reception, prefer one of the coach's named three passers. A back-row
+  // player nearest zone 6 handles the illustrative dig after an attack.
+  const rotation = schemeDatabase.rotationOrder[team.turns || 0];
+  const passers = schemeDatabase.coachPassers[String(rotation)];
+  const eligible = index === 2 && !opponent
+    ? candidates.filter((id) => passers.includes(id)) : candidates;
+  const pool = eligible.length ? eligible : candidates;
+  const id = pool.reduce((best, current) =>
+    Math.hypot(points[current].x - target.x, points[current].y - target.y) <
+      Math.hypot(points[best].x - target.x, points[best].y - target.y) ? current : best);
+  return { x: points[id].x, y: points[id].y - 5 };
 }
 const positionLabel = (spot) => copy(positions[spot].label.toLowerCase(), {
   4: "davanti a sinistra", 3: "davanti al centro", 2: "davanti a destra",
@@ -565,8 +608,8 @@ function renderPlayhead() {
   const rawFraction = playhead - fromIndex;
   const fraction = reducedMotion.matches ? 0 : rawFraction;
   const travel = teachingPlayback() ? fraction * fraction * (3 - 2 * fraction) : fraction;
-  const from = phasePositions(team, sequence[fromIndex]);
-  const to = phasePositions(team, sequence[toIndex]);
+  const from = rallyPositions(team, sequence, fromIndex);
+  const to = rallyPositions(team, sequence, toIndex);
   const place = (element, point) => {
     element.style.left = `${point.x}%`;
     element.style.top = `${point.y}%`;
@@ -581,8 +624,8 @@ function renderPlayhead() {
   });
   if (state.opponents) {
     const opponent = opponentLineup();
-    const opponentFrom = phasePositions(opponent, sequence[fromIndex], true);
-    const opponentTo = phasePositions(opponent, sequence[toIndex], true);
+    const opponentFrom = rallyPositions(opponent, sequence, fromIndex, true);
+    const opponentTo = rallyPositions(opponent, sequence, toIndex, true);
     document.querySelectorAll("#opponent-players [data-player]").forEach((marker) => {
       const point = interpolate(opponentFrom[marker.dataset.player], opponentTo[marker.dataset.player]);
       place(marker, { x: 100 - point.x, y: 100 - point.y });
@@ -591,8 +634,8 @@ function renderPlayhead() {
   const selected = team.selected;
   if (selected) place($("target-token"), interpolate(from[selected], to[selected]));
   const pathIndex = travel > 0 ? toIndex : fromIndex;
-  const previous = phasePositions(team, sequence[Math.max(0, pathIndex - 1)]);
-  const destination = phasePositions(team, sequence[pathIndex]);
+  const previous = rallyPositions(team, sequence, Math.max(0, pathIndex - 1));
+  const destination = rallyPositions(team, sequence, pathIndex);
   const origin = selected && previous[selected];
   const end = selected && destination[selected];
   const moving = pathIndex > 0 && origin && end && Math.hypot(end.x - origin.x, end.y - origin.y) > 7;
@@ -615,9 +658,12 @@ function renderPlayhead() {
   const opposingArea = state.opponents
     ? $("opponent-court").getBoundingClientRect()
     : document.querySelector(".opponent-strip").getBoundingClientRect();
-  const ballPoint = (phase) => {
-    const local = ballByEvent[phase.key] || ballByEvent.serve;
+  const ballPoint = (index) => {
+    const phase = sequence[index];
     const ours = (phase.owner === "none" ? state.serve : phase.owner) === "ours";
+    const local = teachingPlayback()
+      ? rallyTouch(ours ? team : opponentLineup(), sequence, index, !ours)
+      : ballByEvent[phase.key] || ballByEvent.serve;
     const rect = ours ? ourCourt : opposingArea;
     return {
       x: rect.left - stage.left + (ours ? local.x : 100 - local.x) * rect.width / 100,
@@ -626,8 +672,8 @@ function renderPlayhead() {
     };
   };
   $("rally-ball").hidden = fromIndex === 0 && travel === 0;
-  const ballFrom = ballPoint(sequence[fromIndex]);
-  const ballTo = ballPoint(sequence[toIndex]);
+  const ballFrom = ballPoint(fromIndex);
+  const ballTo = ballPoint(toIndex);
   const arc = reducedMotion.matches ? 0 : Math.sin(Math.PI * travel) *
     Math.min(54, Math.hypot(ballTo.x - ballFrom.x, ballTo.y - ballFrom.y) * 0.11);
   $("rally-ball").style.left = `${ballFrom.x + (ballTo.x - ballFrom.x) * travel}px`;
@@ -640,8 +686,8 @@ function renderTimeline() {
   const sequence = phases();
   $("rally-preview-note").hidden = !teachingPlayback();
   $("rally-preview-note").textContent = copy(
-    "Open smart special preview: each moment pauses before the next movement.",
-    "Anteprima Open smart special: ogni momento resta in vista prima del movimento successivo.",
+    "Open smart special preview: the ball and all players move together between touches.",
+    "Anteprima Open smart special: palla e giocatori si muovono insieme tra un tocco e l'altro.",
   );
   $("timeline").innerHTML = sequence
     .map(
@@ -767,31 +813,30 @@ function tickRally(time) {
   if (lastFrameTime) {
     const speed = Number($("rally-speed").value);
     if (teachingPlayback()) {
-      playbackElapsed += Math.min(time - lastFrameTime, 120) * speed;
-      if (playbackMode === "hold" && playbackElapsed >= teachingHoldMs) {
-        playbackElapsed -= teachingHoldMs;
-        playbackMode = "move";
+      let remaining = Math.min(time - lastFrameTime, 120) * speed;
+      while (remaining > 0 && playhead < phases().length - 1) {
+        const segment = Math.floor(playhead);
+        const duration = teachingLegMs[segment];
+        const available = (segment + 1 - playhead) * duration;
+        const used = Math.min(remaining, available);
+        playhead = used >= available - 0.000001
+          ? segment + 1 : playhead + used / duration;
+        remaining -= used;
       }
-      if (playbackMode === "move") {
-        playhead = Math.min(phases().length - 1,
-          state.step + Math.min(1, playbackElapsed / teachingMoveMs));
-        if (playbackElapsed >= teachingMoveMs) {
-          state.step = Math.min(phases().length - 1, state.step + 1);
-          playhead = state.step;
-          playbackElapsed = 0;
-          playbackMode = "hold";
-          render();
-          const panel = document.querySelector(".controls-panel");
-          const active = $("timeline").querySelector(".active");
-          if (window.innerWidth > 780 && active) {
-            const panelBox = panel.getBoundingClientRect();
-            const activeBox = active.getBoundingClientRect();
-            if (activeBox.bottom > panelBox.bottom - 16)
-              panel.scrollTop += activeBox.bottom - panelBox.bottom + 16;
-          }
-          if (state.step === phases().length - 1) { pauseRally(); return; }
-        } else renderPlayhead();
+      const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
+      if (activeStep !== state.step) {
+        state.step = activeStep;
+        render();
+        const panel = document.querySelector(".controls-panel");
+        const active = $("timeline").querySelector(".active");
+        if (window.innerWidth > 780 && active) {
+          const panelBox = panel.getBoundingClientRect();
+          const activeBox = active.getBoundingClientRect();
+          if (activeBox.bottom > panelBox.bottom - 16)
+            panel.scrollTop += activeBox.bottom - panelBox.bottom + 16;
+        }
       } else renderPlayhead();
+      if (playhead >= phases().length - 1) { pauseRally(); return; }
     } else {
       playhead = Math.min(phases().length - 1, playhead + (time - lastFrameTime) * speed / 1650);
       const activeStep = Math.min(phases().length - 1, Math.floor(playhead));
@@ -813,11 +858,6 @@ function tickRally(time) {
 $("rally-play").addEventListener("click", () => {
   if (playing) { pauseRally(); return; }
   if (playhead >= phases().length - 1) seekRally(0);
-  if (teachingPlayback()) {
-    const fraction = playhead - Math.floor(playhead);
-    playbackMode = fraction > 0 ? "move" : "hold";
-    playbackElapsed = fraction > 0 ? fraction * teachingMoveMs : 0;
-  }
   playing = true;
   renderTimeline();
   animationFrame = requestAnimationFrame(tickRally);
