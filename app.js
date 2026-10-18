@@ -194,6 +194,7 @@ let lastFrameTime = 0;
 let animationFrame = 0;
 // Time between touches: slow enough to follow the routes, without freezing at each touch.
 const teachingLegMs = [1800, 2600, 1900, 1800, 2400, 1900, 1800];
+const ballContactLiftPx = 32;
 const teachingPlayback = () => state.lineup === "open-smart-special";
 const phases = () => schemeDatabase.rallyPhases[state.serve];
 const phaseTitle = (phase) => rallyTitles[phase.key][state.lang === "it" ? 1 : 0];
@@ -236,14 +237,19 @@ function rallyPositions(team, sequence, index, opponent = false) {
 function rallyTouch(team, sequence, index, opponent = false) {
   const points = rallyPositions(team, sequence, index, opponent);
   if (index === 0 || index === 1) {
-    const server = points[team.bySlot["1"]];
-    return { x: server.x, y: Math.min(server.y, 105) };
+    const player = team.bySlot["1"];
+    const server = points[player];
+    return { x: server.x, y: Math.min(server.y, 105), player };
   }
-  // Show the second touch just beside the setter's hands so both markers stay legible.
-  if (index === 3 || index === 6) return { x: points.S.x + 7, y: points.S.y - 5 };
+  if (index === 3 || index === 6) return { ...points.S, player: "S" };
   const slots = index === 4 || index === 7 ? ["4", "3", "2"] : ["5", "6", "1"];
-  const target = index === 4 || index === 7 ? { x: 35, y: 15 } : { x: 50, y: 65 };
   const candidates = slots.map((slot) => team.bySlot[slot]).filter((id) => id !== "S" && points[id]);
+  if (index === 4 || index === 7) {
+    // One outside is in the front row in every 5–1 rotation. This is an
+    // illustrative attack choice, not a claim about the coach's play call.
+    const player = candidates.find((id) => id === "OH1" || id === "OH2") || candidates[0];
+    return { ...points[player], player };
+  }
   // In a reception, prefer one of the coach's named three passers. A back-row
   // player nearest zone 6 handles the illustrative dig after an attack.
   const rotation = schemeDatabase.rotationOrder[team.turns || 0];
@@ -251,10 +257,11 @@ function rallyTouch(team, sequence, index, opponent = false) {
   const eligible = index === 2 && !opponent
     ? candidates.filter((id) => passers.includes(id)) : candidates;
   const pool = eligible.length ? eligible : candidates;
+  const target = { x: 50, y: 65 };
   const id = pool.reduce((best, current) =>
     Math.hypot(points[current].x - target.x, points[current].y - target.y) <
       Math.hypot(points[best].x - target.x, points[best].y - target.y) ? current : best);
-  return { x: points[id].x, y: points[id].y - 5 };
+  return { ...points[id], player: id };
 }
 const positionLabel = (spot) => copy(positions[spot].label.toLowerCase(), {
   4: "davanti a sinistra", 3: "davanti al centro", 2: "davanti a destra",
@@ -654,21 +661,32 @@ function renderPlayhead() {
     "transition-set": { x: 75, y: 22 }, counterattack: { x: 37, y: 10 },
   };
   const stage = document.querySelector(".court-stage").getBoundingClientRect();
-  const ourCourt = $("court").getBoundingClientRect();
+  const ourCourt = $("court");
   const opposingArea = state.opponents
-    ? $("opponent-court").getBoundingClientRect()
-    : document.querySelector(".opponent-strip").getBoundingClientRect();
+    ? $("opponent-court") : document.querySelector(".opponent-strip");
   const ballPoint = (index) => {
     const phase = sequence[index];
     const ours = (phase.owner === "none" ? state.serve : phase.owner) === "ours";
-    const local = teachingPlayback()
+    const touch = teachingPlayback()
       ? rallyTouch(ours ? team : opponentLineup(), sequence, index, !ours)
-      : ballByEvent[phase.key] || ballByEvent.serve;
-    const rect = ours ? ourCourt : opposingArea;
+      : null;
+    const local = touch || ballByEvent[phase.key] || ballByEvent.serve;
+    const area = ours ? ourCourt : opposingArea;
+    const rect = area.getBoundingClientRect();
+    const contactLift = touch && index > 1 && (ours || state.opponents)
+      ? (ours ? -ballContactLiftPx : ballContactLiftPx) : 0;
+    const boxLeft = rect.left - stage.left + (touch ? area.clientLeft : 0);
+    const boxTop = rect.top - stage.top + (touch ? area.clientTop : 0);
+    const boxWidth = touch ? area.clientWidth : rect.width;
+    const boxHeight = touch ? area.clientHeight : rect.height;
     return {
-      x: rect.left - stage.left + (ours ? local.x : 100 - local.x) * rect.width / 100,
-      y: rect.top - stage.top + (ours ? local.y * rect.height / 100
-        : state.opponents ? Math.max(0, 100 - local.y) * rect.height / 100 : rect.height / 2),
+      // Open smart contact points use the markers' inner box so the ball
+      // meets them exactly. Other lineups retain their existing ball mapping.
+      x: boxLeft + (ours ? local.x : 100 - local.x) * boxWidth / 100,
+      y: boxTop + (ours ? local.y * boxHeight / 100
+        : state.opponents ? Math.max(0, 100 - local.y) * boxHeight / 100
+          : boxHeight / 2)
+        + contactLift,
     };
   };
   $("rally-ball").hidden = fromIndex === 0 && travel === 0;
