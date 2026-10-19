@@ -585,6 +585,67 @@ function renderCards() {
     : copy("Positions come from checked scheme data. Attack, defense and timing are illustrative adaptations of the published example.", "Le posizioni provengono dagli schemi verificati. Attacco, difesa e tempi sono adattamenti illustrativi dell'esempio pubblicato.");
 }
 
+function renderPrintPages() {
+  if (!schemeDatabase) return;
+  document.documentElement.classList.add("printing-cards");
+  const layout = Number($("print-layout").value) === 2 ? 2 : 4;
+  const perPage = 8 / layout;
+  const cards = [...$("checklist-grid").querySelectorAll(".check-card")];
+  const relations = [...$("checklist-relationships").querySelectorAll(".relationship-grid div")]
+    .map((item) => `${item.querySelector("span").textContent}: ${item.querySelector("strong").textContent}`);
+  const reference = relations.length
+    ? relations.join(" · ")
+    : $("checklist-relationships").querySelector("p")?.textContent || "";
+  const lineup = state.lineup === "open-smart-special" ? "Open smart special"
+    : state.lineup === "libero" ? copy("5–1 with Libero", "5–1 con Libero")
+      : copy("5–1 without Libero", "5–1 senza Libero");
+  const context = `${lineup} · ${$("checklist-kicker").textContent} · ${$("rules-select").selectedOptions[0].textContent}`;
+  const root = $("print-pages");
+  root.replaceChildren();
+  for (let pageIndex = 0; pageIndex < layout; pageIndex++) {
+    const page = document.createElement("section");
+    page.className = "print-page";
+    page.dataset.layout = String(layout);
+    const header = document.createElement("header");
+    header.className = "print-header";
+    const top = document.createElement("div");
+    top.className = "print-topline";
+    const brand = document.createElement("strong");
+    brand.textContent = "sideout.";
+    const number = document.createElement("span");
+    number.textContent = `${copy("PERSONAL PHASE CARDS", "SCHEDE PERSONALI DELLE FASI")} · ${pageIndex + 1}/${layout}`;
+    top.append(brand, number);
+    const title = document.createElement("h1");
+    title.textContent = $("checklist-title").textContent;
+    const meta = document.createElement("p");
+    meta.className = "print-meta";
+    meta.textContent = context;
+    const nearby = document.createElement("p");
+    nearby.className = "print-nearby";
+    nearby.textContent = reference;
+    const timing = document.createElement("p");
+    timing.className = "print-timing";
+    timing.textContent = timingText();
+    header.append(top, title, meta, nearby, timing);
+    const grid = document.createElement("div");
+    grid.className = "print-card-grid";
+    for (const card of cards.slice(pageIndex * perPage, (pageIndex + 1) * perPage)) {
+      const printed = card.cloneNode(true);
+      printed.classList.remove("is-current");
+      printed.removeAttribute("id");
+      printed.removeAttribute("aria-labelledby");
+      printed.querySelector("h4")?.removeAttribute("id");
+      printed.querySelector("button")?.remove();
+      grid.appendChild(printed);
+    }
+    const footer = document.createElement("footer");
+    footer.className = "print-footer";
+    footer.textContent = $("checklist-source").textContent;
+    page.append(header, grid, footer);
+    root.appendChild(page);
+  }
+}
+
 function renderOptions() {
   $("role-options").innerHTML = visibleRoles().map((key) => [key, roleInfo(key)])
     .map(
@@ -917,6 +978,7 @@ function render() {
   renderCourt();
   renderTimeline();
   renderCards();
+  $("print-cards").disabled = false;
   renderRoles();
   renderTeam();
   const url = new URL(location.href);
@@ -1006,6 +1068,16 @@ $("rally-play").addEventListener("click", () => {
   renderTimeline();
   animationFrame = requestAnimationFrame(tickRally);
 });
+$("print-cards").addEventListener("click", () => {
+  pauseRally();
+  renderPrintPages();
+  window.print();
+});
+window.addEventListener("beforeprint", () => {
+  if (state.view === "cards") renderPrintPages();
+  else document.documentElement.classList.remove("printing-cards");
+});
+window.addEventListener("afterprint", () => document.documentElement.classList.remove("printing-cards"));
 $("rally-back").addEventListener("click", () => seekRally(state.step - 1));
 $("rally-next").addEventListener("click", () => seekRally(state.step + 1));
 $("rally-scrub").addEventListener("input", (event) => seekRally(Number(event.target.value) / 100));

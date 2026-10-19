@@ -2389,3 +2389,162 @@ h1 em {
   .checklist-grid, .relationship-grid { grid-template-columns: 1fr; }
   .playbook-tabs button { flex: 1; padding: 10px 8px; }
 }
+
+.checklist-print-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 7px;
+}
+.checklist-print-controls label {
+  font: 800 12px Outfit, sans-serif;
+  color: var(--ink);
+}
+.checklist-print-controls select,
+.checklist-print-controls button {
+  min-height: 41px;
+  border-radius: 8px;
+  font: 800 12px Outfit, sans-serif;
+}
+.checklist-print-controls select {
+  padding: 7px 10px;
+  border: 1px solid #a8ccdf;
+  background: white;
+  color: var(--ink);
+}
+.checklist-print-controls button {
+  padding: 8px 13px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: white;
+  cursor: pointer;
+}
+.checklist-print-controls button:hover { background: #146c9e; }
+.checklist-print-controls button:disabled { opacity: .5; cursor: default; }
+.checklist-print-controls select:focus-visible,
+.checklist-print-controls button:focus-visible {
+  outline: 3px solid var(--ball-orange);
+  outline-offset: 2px;
+}
+.checklist-heading .checklist-print-hint {
+  margin: 0 0 20px;
+  font-size: 11px;
+}
+#print-pages { display: none; }
+
+@page { size: A4 portrait; margin: 8mm; }
+@media print {
+  html.printing-cards, html.printing-cards body { width: auto; margin: 0; padding: 0; background: white; }
+  html.printing-cards .skip-link, html.printing-cards .site-shell { display: none !important; }
+  html.printing-cards #print-pages { display: block !important; font-family: "DM Sans", Arial, sans-serif; color: #173c54; }
+  .print-page {
+    display: flex;
+    flex-direction: column;
+    height: 279mm;
+    box-sizing: border-box;
+    break-after: page;
+    page-break-after: always;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+  .print-header { flex: none; padding-bottom: 2.5mm; border-bottom: .35mm solid #a7c7da; }
+  .print-topline { display: flex; justify-content: space-between; align-items: baseline; }
+  .print-topline strong { font: 800 13pt Outfit, sans-serif; color: #244a63; }
+  .print-topline span { font: 800 7pt Outfit, sans-serif; letter-spacing: .7pt; color: #286b91; }
+  .print-header h1 { margin: 1mm 0 .8mm; font: 800 17pt/1.1 Outfit, sans-serif; letter-spacing: normal; color: #244a63; }
+  .print-header p { margin: .5mm 0; line-height: 1.23; }
+  .print-meta { font-size: 8.5pt; font-weight: 700; }
+  .print-nearby, .print-timing { font-size: 7.5pt; }
+  .print-card-grid {
+    display: grid;
+    flex: 1;
+    min-height: 0;
+    gap: 3.5mm;
+    padding: 3mm 0;
+  }
+  .print-page[data-layout="2"] .print-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+  .print-page[data-layout="4"] .print-card-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+  .print-page .check-card {
+    min-width: 0;
+    min-height: 0;
+    padding: 2.5mm;
+    border: .3mm solid #98bbd0;
+    border-radius: 2mm;
+    background: #fff;
+    box-shadow: none;
+    break-inside: avoid;
+    overflow: hidden;
+  }
+  .print-page .check-card-heading span { color: #245b7e; font-size: 7pt; }
+  .print-page .check-card-heading h4 { margin: .5mm 0 1.5mm; color: #173c54; }
+  .print-page .check-court { width: 100%; margin: 0 0 1mm; padding: 0 0 3mm; }
+  .print-page .check-court-surface { width: 100%; border: .25mm solid #8fb8d0; outline: none; background: #e5f1f8; }
+  .print-page .check-court-surface::before,
+  .print-page .check-court-surface::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: .2mm solid #a8c8da;
+  }
+  .print-page .check-court-surface::before { left: 33.333%; }
+  .print-page .check-court-surface::after { left: 66.666%; }
+  .print-page .check-net { top: -2.2mm; font-size: 5.5pt; color: #173c54; }
+  .print-page .check-attack-line { border-top: .2mm dashed #8fb8d0; }
+  .print-page .check-player {
+    width: 6mm;
+    height: 6mm;
+    border: .3mm solid #244a63;
+    background: white;
+    color: #173c54;
+    box-shadow: none;
+    font-size: 5.7pt;
+  }
+  .print-page .check-player.is-selected {
+    width: 7mm;
+    height: 7mm;
+    border: .75mm solid #bd2632;
+    background: white;
+    color: #8f1e29;
+    box-shadow: none;
+  }
+  .print-page .check-baseline { font-size: 5.5pt; bottom: 0; }
+  .print-page .check-facts { margin: 0; }
+  .print-page .check-facts div { margin-top: 1.6mm; }
+  .print-page .check-facts dt { font-size: 6.7pt; color: #245b7e; }
+  .print-page .check-facts dd { margin-top: .35mm; color: #173c54; line-height: 1.22; }
+  .print-page[data-layout="2"] .check-card-heading h4 { font-size: 10.5pt; }
+  .print-page[data-layout="2"] .check-court { height: 42mm; }
+  .print-page[data-layout="2"] .check-court-surface { height: 38mm; }
+  .print-page[data-layout="2"] .check-facts dd { font-size: 7.8pt; }
+  .print-page[data-layout="4"] .check-card {
+    display: grid;
+    grid-template-columns: 90mm minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    column-gap: 4mm;
+  }
+  .print-page[data-layout="4"] .check-card-heading { grid-column: 1 / -1; }
+  .print-page[data-layout="4"] .check-card-heading h4 { font-size: 13pt; margin-bottom: 2.5mm; }
+  .print-page[data-layout="4"] .check-court { grid-column: 1; grid-row: 2; height: 90mm; }
+  .print-page[data-layout="4"] .check-court-surface { height: 80mm; }
+  .print-page[data-layout="4"] .check-facts { grid-column: 2; grid-row: 2; }
+  .print-page[data-layout="4"] .check-facts div { margin-top: 2.5mm; }
+  .print-page[data-layout="4"] .check-facts dd { font-size: 9.5pt; line-height: 1.3; }
+  .print-footer {
+    flex: none;
+    padding-top: 1.5mm;
+    border-top: .2mm solid #c5dce9;
+    color: #41647b;
+    font-size: 6.6pt;
+    line-height: 1.2;
+  }
+}

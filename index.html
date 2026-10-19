@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=7" />
+    <link rel="stylesheet" href="./styles.css?v=8" />
     <title>Sideout — Find your place on court</title>
   </head>
   <body>
@@ -306,6 +306,15 @@
                   <span class="court-kicker" id="checklist-kicker"></span>
                   <h3 id="checklist-title"></h3>
                   <p id="checklist-intro"></p>
+                  <div class="checklist-print-controls">
+                    <label for="print-layout">A4 layout</label>
+                    <select id="print-layout">
+                      <option value="4" selected>4 A4 pages · larger cards</option>
+                      <option value="2">2 A4 pages · compact</option>
+                    </select>
+                    <button id="print-cards" type="button" disabled>Print / save PDF</button>
+                  </div>
+                  <p class="checklist-print-hint">Use your browser’s print dialog to print or save as PDF. For a two-sided handout, choose duplex printing.</p>
                 </div>
                 <div class="checklist-relationships" id="checklist-relationships"></div>
                 <div class="checklist-grid" id="checklist-grid"></div>
@@ -579,7 +588,8 @@
         ><a href="#top">Back to top ↑</a>
       </footer>
     </div>
-    <script src="./i18n.js?v=8" defer></script>
-    <script src="./app.js?v=11" defer></script>
+    <div id="print-pages"></div>
+    <script src="./i18n.js?v=9" defer></script>
+    <script src="./app.js?v=12" defer></script>
   </body>
 </html>
