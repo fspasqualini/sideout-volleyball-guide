@@ -152,6 +152,7 @@ const state = {
     [0, 1, 2, 3, 4, 5, 6, 7],
     0,
   ),
+  view: valid(params.get("view"), ["animation", "cards"], "animation"),
 };
 if (state.lineup !== "libero" && state.role === "libero") state.role = "setter";
 
@@ -468,6 +469,122 @@ function stepCopy() {
   };
 }
 
+const rotationNeighbors = {
+  4: { right: 3, back: 5 }, 3: { left: 4, right: 2, back: 6 },
+  2: { left: 3, back: 1 }, 5: { right: 6, front: 4 },
+  6: { left: 5, right: 1, front: 3 }, 1: { left: 6, front: 2 },
+};
+
+function phaseInstruction(phase) {
+  const previousStep = state.step;
+  state.step = phase.view;
+  const instruction = stepCopy();
+  state.step = previousStep;
+  if (phase.key === "receive-set" && phase.owner === "ours" && !invalidLibero() && !middleOffCourt()) {
+    const body = state.role === "setter"
+      ? copy("Reach the setting spot as the pass travels toward you; take the second touch. If you began in the back row, you still cannot block.", "Raggiungi la zona d'alzata mentre la ricezione viaggia verso di te; prendi il secondo tocco. Se sei partito in seconda linea, non puoi comunque murare.")
+      : state.role === "libero"
+        ? copy("Stay behind the attack and cover your teammates as the setter takes the second touch. You cannot block or attack a ball entirely above the net.", "Resta dietro l'attacco e copri i compagni mentre il palleggiatore prende il secondo tocco. Non puoi murare né attaccare una palla completamente sopra la rete.")
+      : frontRow()
+        ? copy("After covering the serve, move into your attacking lane and watch the setter. Be ready for the set or to cover the hitter.", "Dopo aver coperto la battuta, vai nella tua corsia d'attacco e guarda il palleggiatore. Preparati all'alzata o a coprire chi attacca.")
+        : copy("Stay behind the attack and cover your teammates as the setter takes the second touch. If you attack above the net, take off behind the attack line.", "Resta dietro l'attacco e copri i compagni mentre il palleggiatore prende il secondo tocco. Se attacchi sopra la rete, stacca da dietro la linea dei tre metri.");
+    return { ...instruction, body };
+  }
+  const opposingAction = phase.owner === "theirs" && phase.key !== "serve"
+    ? phase.key === "receive" ? copy("They receive; we take our defensive shape. ", "Loro ricevono; noi ci disponiamo in difesa. ")
+      : phase.key === "receive-set" || phase.key === "transition-set" ? copy("They set; read the setter and stay ready to defend. ", "Loro alzano; leggi il palleggiatore e preparati a difendere. ")
+        : phase.key === "transition-dig" ? copy("They dig our attack; move back into defense. ", "Loro difendono il nostro attacco; torna in difesa. ")
+          : copy("They attack; keep your defensive responsibility. ", "Loro attaccano; mantieni il tuo compito difensivo. ")
+    : "";
+  return { ...instruction, body: `${opposingAction}${instruction.body}` };
+}
+
+function courtArea(point) {
+  if (point.y > 100) return copy("behind the baseline to serve", "dietro la linea di fondo per battere");
+  const side = point.x < 34 ? copy("left", "sinistra")
+    : point.x > 66 ? copy("right", "destra") : copy("middle", "centro");
+  const depth = point.y < 34 ? copy("near the net", "vicino alla rete")
+    : point.y < 68 ? copy("around the attack line", "intorno alla linea dei tre metri")
+      : copy("in the back court", "nella parte di fondo campo");
+  return copy(`${side === "middle" ? "In the middle" : `On the ${side}`}, ${depth}`, `${side === "centro" ? "Al" : "A"} ${side}, ${depth}`);
+}
+
+function teammatesAtPhase(phase, team, sequence, index) {
+  const ours = (phase.owner === "none" ? state.serve : phase.owner) === "ours";
+  const touch = rallyTouch(ours ? team : opponentLineup(), sequence, index, !ours);
+  const actor = ours && touch?.player ? playerName(touch.player) : null;
+  switch (phase.key) {
+    case "rotation": return copy("Everyone checks the numbered rotation before the serve.", "Tutti controllano la rotazione numerata prima della battuta.");
+    case "serve": return state.serve === "ours"
+      ? copy(`${playerName(team.bySlot[1])} serves; the others prepare to defend the return.`, `${playerName(team.bySlot[1])} batte; gli altri si preparano a difendere il ritorno.`)
+      : copy("The opponents serve; our receivers and setter prepare for the first two touches.", "Gli avversari battono; i nostri ricevitori e il palleggiatore preparano i primi due tocchi.");
+    case "receive": return ours
+      ? copy(`${actor} receives the serve; the setter moves toward the second touch.`, `${actor} riceve la battuta; il palleggiatore si sposta verso il secondo tocco.`)
+      : copy("They receive our serve; our team takes its defensive shape.", "Loro ricevono la nostra battuta; la nostra squadra si dispone in difesa.");
+    case "receive-set": return ours
+      ? copy("The setter reaches the ball; front-row hitters prepare their approaches.", "Il palleggiatore raggiunge la palla; gli attaccanti di prima linea preparano la rincorsa.")
+      : copy("Their setter prepares the attack; watch their hitters.", "Il loro palleggiatore prepara l'attacco; osserva i loro attaccanti.");
+    case "receive-attack": return ours
+      ? copy(`${actor} attacks; teammates cover the hitter and prepare for a return.`, `${actor} attacca; i compagni lo coprono e si preparano al ritorno.`)
+      : copy("They attack; our team reads the shot and defends.", "Loro attaccano; la nostra squadra legge il colpo e difende.");
+    case "transition-dig": return ours
+      ? copy(`${actor} digs their attack; the setter moves toward the next touch.`, `${actor} difende il loro attacco; il palleggiatore va verso il prossimo tocco.`)
+      : copy("They dig our attack; our team returns to defensive cover.", "Loro difendono il nostro attacco; la nostra squadra torna in copertura difensiva.");
+    case "transition-set": return ours
+      ? copy("Our setter takes the second touch; hitters get ready again.", "Il nostro palleggiatore prende il secondo tocco; gli attaccanti si preparano di nuovo.")
+      : copy("They set their next attack; our defenders track the ball and hitters.", "Loro alzano per il prossimo attacco; i nostri difensori seguono palla e attaccanti.");
+    default: return ours
+      ? copy(`${actor} counterattacks; the others cover and prepare to defend again.`, `${actor} contrattacca; gli altri coprono e si preparano a difendere ancora.`)
+      : copy("They counterattack; our team is ready for the next dig.", "Loro contrattaccano; la nostra squadra è pronta alla prossima difesa.");
+  }
+}
+
+function renderCards() {
+  const team = activeLineup();
+  const sequence = phases();
+  const selected = team.selected;
+  const actualSlot = Number(Object.keys(team.bySlot).find((slot) => team.bySlot[slot] === selected));
+  const slot = actualSlot || state.position;
+  const showRelations = Boolean(actualSlot) && !invalidLibero() && !middleOffCourt();
+  $("checklist-kicker").textContent = `${state.serve === "ours" ? copy("OUR SERVE", "BATTUTA NOSTRA") : copy("THEIR SERVE", "BATTUTA AVVERSARIA")} · R${team.turns + 1}`;
+  $("checklist-title").textContent = copy(`${roleInfo(state.role).name} · rotation position ${state.position}`, `${roleInfo(state.role).name} · posizione di rotazione ${state.position}`);
+  $("checklist-intro").textContent = copy(
+    "Eight still frames from the same rally. The net is above; left and right are seen while facing it. Choose a phase below to inspect your place and the whole team.",
+    "Otto fotogrammi dello stesso scambio. La rete è in alto; sinistra e destra sono viste guardandola. Scegli una fase per controllare dove sei e vedere tutta la squadra.",
+  );
+  if (showRelations) {
+    const relations = Object.entries(rotationNeighbors[slot]).map(([direction, neighborSlot]) => {
+      const label = {
+        left: copy("Left of you in your row", "Alla tua sinistra nella fila"),
+        right: copy("Right of you in your row", "Alla tua destra nella fila"),
+        front: copy("In front of you", "Davanti a te"),
+        back: copy("Behind you", "Dietro di te"),
+      }[direction];
+      return `<div><span>${label}</span><strong>${playerName(team.bySlot[neighborSlot])} · ${neighborSlot}</strong></div>`;
+    }).join("");
+    $("checklist-relationships").innerHTML = `<h4>${copy("Your rotation references", "I tuoi riferimenti nella rotazione")}</h4><div class="relationship-grid">${relations}</div><p>${timingText()} ${copy("At the required moment, relative foot positions determine legality; the dots are teaching markers. Your front- or back-row status remains the same for the rally.", "Al momento previsto contano i rapporti tra i piedi; i pallini sono indicativi. Resti di prima o seconda linea per tutto lo scambio.")}</p>`;
+  } else {
+    $("checklist-relationships").innerHTML = `<h4>${copy("Your rotation references", "I tuoi riferimenti nella rotazione")}</h4><p>${invalidLibero() ? copy("The Libero cannot occupy this front-row spot or serve under the selected rules. Choose a legal back-row spot.", "Il Libero non può occupare questa posizione di prima linea né battere con le regole selezionate. Scegli una posizione consentita in seconda linea.") : copy("The Libero replaces this middle between rallies; follow the six players from the sideline.", "Il Libero sostituisce questo centrale tra gli scambi; segui i sei giocatori da fuori campo.")}</p>`;
+  }
+  $("checklist-grid").innerHTML = sequence.map((phase, index) => {
+    const points = rallyPositions(team, sequence, index);
+    const instruction = phaseInstruction(phase);
+    const locationText = selected ? courtArea(points[selected]) : copy("On the sideline for this rotation", "Fuori campo in questa rotazione");
+    const rowText = frontRow() ? copy("front-row player", "giocatore di prima linea") : copy("back-row player", "giocatore di seconda linea");
+    const markers = Object.entries(points).map(([id, point]) =>
+      `<span class="check-player ${id === selected ? "is-selected" : ""}" style="left:${point.x}%;top:${point.y}%" title="${playerName(id)}">${markerLabel(id)}</span>`).join("");
+    return `<article class="check-card ${state.step === index ? "is-current" : ""}" id="check-phase-${index}" aria-labelledby="check-title-${index}">
+      <div class="check-card-heading"><span>0${index + 1} · ${ownerLabel(phase) || copy("Before play", "Prima dello scambio")}</span><h4 id="check-title-${index}">${phaseTitle(phase)}</h4></div>
+      <div class="check-court" role="img" aria-label="${copy("Our team. Your position", "La nostra squadra. La tua posizione")}: ${locationText}"><div class="check-court-surface"><span class="check-net">${copy("NET", "RETE")}</span><span class="check-attack-line"></span>${markers}</div><span class="check-baseline">${copy("BASELINE", "LINEA DI FONDO")}</span></div>
+      <dl class="check-facts"><div><dt>${copy("Your place", "Dove sei")}</dt><dd>${locationText}${selected ? ` · ${rowText}` : ""}</dd></div><div><dt>${copy("Your job", "Il tuo compito")}</dt><dd>${instruction.body}</dd></div><div><dt>${copy("Watch the team", "Guarda gli altri")}</dt><dd>${teammatesAtPhase(phase, team, sequence, index)}</dd></div></dl>
+      <button type="button" class="check-open-animation" data-open-step="${index}">${copy("Watch this moment move", "Guarda questo momento animato")} <span aria-hidden="true">↗</span></button>
+    </article>`;
+  }).join("");
+  $("checklist-source").textContent = state.lineup === "open-smart-special"
+    ? copy("When our team receives, serve-reception positions follow the coach's transcribed 2015 diagrams. Attack, defense and timing are illustrative adaptations; the original PDF is not in this repository.", "Quando riceviamo noi, le posizioni di ricezione seguono la trascrizione degli schemi del coach del 2015. Attacco, difesa e tempi sono adattamenti illustrativi; il PDF originale non è in questo repository.")
+    : copy("Positions come from checked scheme data. Attack, defense and timing are illustrative adaptations of the published example.", "Le posizioni provengono dagli schemi verificati. Attacco, difesa e tempi sono adattamenti illustrativi dell'esempio pubblicato.");
+}
+
 function renderOptions() {
   $("role-options").innerHTML = visibleRoles().map((key) => [key, roleInfo(key)])
     .map(
@@ -724,10 +841,7 @@ function renderTimeline() {
     "K1 (cambio palla): ricezione della battuta → alzata → attacco. K2 (fase break point): battuta, difesa dell’attacco → alzata → contrattacco. Se la palla torna, la transizione continua.",
   );
   const phase = sequence[state.step];
-  const originalStep = state.step;
-  state.step = phase.view;
-  const instruction = stepCopy();
-  state.step = originalStep;
+  const instruction = phaseInstruction(phase);
   const firstTouch = phase.key === "receive"
     ? copy("Serve reception is the first touch after a serve.", "La ricezione è il primo tocco dopo la battuta.")
     : phase.key === "transition-dig"
@@ -742,13 +856,7 @@ function renderTimeline() {
   $("instruction-kicker").textContent =
     `${state.lang === "it" ? "PASSO" : "STEP"} 0${state.step + 1} · ${roleInfo(state.role).name.toUpperCase()}`;
   $("instruction-title").textContent = `${ownerLabel(phase) ? `${ownerLabel(phase)} · ` : ""}${phaseTitle(phase)}`;
-  const opposingAction = phase.owner === "theirs" && phase.key !== "serve"
-    ? phase.key === "receive" ? copy("They receive; we take our defensive shape. ", "Loro ricevono; noi ci disponiamo in difesa. ")
-      : phase.key === "receive-set" || phase.key === "transition-set" ? copy("They set; read the setter and stay ready to defend. ", "Loro alzano; leggi il palleggiatore e preparati a difendere. ")
-        : phase.key === "transition-dig" ? copy("They dig our attack; move back into defense. ", "Loro difendono il nostro attacco; torna in difesa. ")
-          : copy("They attack; keep your defensive responsibility. ", "Loro attaccano; mantieni il tuo compito difensivo. ")
-    : "";
-  $("instruction-body").textContent = `${opposingAction}${instruction.body}`;
+  $("instruction-body").textContent = instruction.body;
   $("instruction-icon").textContent = invalidLibero()
     ? "!"
     : ["◎", "⇢", "↗", "✦", "↑", "↓", "✦", "↑"][state.step];
@@ -804,9 +912,11 @@ function renderTeam() {
 function render() {
   if (!schemeDatabase) return;
   translateStatic(state.lang);
+  renderTabs();
   renderOptions();
   renderCourt();
   renderTimeline();
+  renderCards();
   renderRoles();
   renderTeam();
   const url = new URL(location.href);
@@ -815,6 +925,26 @@ function render() {
     url.searchParams.set(key, value),
   );
   history.replaceState(null, "", url);
+}
+
+function renderTabs() {
+  for (const view of ["animation", "cards"]) {
+    const selected = state.view === view;
+    const tab = $(`${view}-tab`);
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    $(`${view}-panel`).hidden = !selected;
+  }
+  document.querySelector(".playbook-tabs").setAttribute("aria-label", copy("Playbook views", "Viste della guida"));
+}
+
+function chooseView(view, focus = false) {
+  if (!["animation", "cards"].includes(view)) return;
+  pauseRally();
+  state.view = view;
+  render();
+  if (view === "animation") renderPlayhead();
+  if (focus) $(`${view}-tab`).focus();
 }
 
 function pauseRally() {
@@ -870,6 +1000,7 @@ function tickRally(time) {
 
 $("rally-play").addEventListener("click", () => {
   if (playing) { pauseRally(); return; }
+  if (state.view === "cards") chooseView("animation");
   if (playhead >= phases().length - 1) seekRally(0);
   playing = true;
   renderTimeline();
@@ -883,6 +1014,19 @@ reducedMotion.addEventListener("change", () => { pauseRally(); renderPlayhead();
 document.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
+  if (button.dataset.view) {
+    chooseView(button.dataset.view);
+    return;
+  }
+  if (button.dataset.openStep) {
+    pauseRally();
+    state.step = Number(button.dataset.openStep);
+    playhead = state.step;
+    state.view = "animation";
+    render();
+    $("animation-panel").focus();
+    return;
+  }
   if (button.dataset.role) {
     pauseRally();
     state.role = button.dataset.role;
@@ -914,6 +1058,17 @@ document.addEventListener("click", (event) => {
   if (button.dataset.step) {
     seekRally(Number(button.dataset.step));
   }
+});
+
+document.querySelector(".playbook-tabs").addEventListener("keydown", (event) => {
+  const tabs = ["animation", "cards"];
+  const current = tabs.indexOf(state.view);
+  const target = event.key === "ArrowRight" ? tabs[(current + 1) % tabs.length]
+    : event.key === "ArrowLeft" ? tabs[(current + tabs.length - 1) % tabs.length]
+      : event.key === "Home" ? tabs[0] : event.key === "End" ? tabs[tabs.length - 1] : null;
+  if (!target) return;
+  event.preventDefault();
+  chooseView(target, true);
 });
 
 $("opponent-toggle").addEventListener("click", () => {
