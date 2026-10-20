@@ -16,7 +16,7 @@ SOURCE = ROOT / "references/rotazionivolley/ricezione-a-3.json"
 OUTPUT = ROOT / "data/schemes.json"
 COACH = ROOT / "references/coach-open-smart-special/receive.json"
 SOURCE_SHA256 = "9fec10d49f723d5036feaa5ea78a7288d04409d759cf05c601c57d0585d0b5c2"
-COACH_TRANSCRIPTION_SHA256 = "9d1cfdd2e72fb57d78e40e36d4cbceb174fd07019a4c34442610ed2b3ce4b982"
+COACH_TRANSCRIPTION_SHA256 = "dca8b85a36f74d916f9dc8341aed25ce5d16f094e9670b5ff5a1cc4c00cf9b08"
 SOURCE_REVISION = "ecd4455d2b9972fc56caa31323f8eb42855bf66f"
 
 SOURCE_TO_APP = {
@@ -206,6 +206,16 @@ def build_database(reference, coach):
                     "bySlot": slots, "steps": steps,
                 }
 
+    coach_first_set = {}
+    for rotation in ROTATION_ORDER:
+        key = str(rotation)
+        zones = coach["firstSetZones"][key]
+        positions = {player: dict(COACH_PLAY_ZONES[zone]) for player, zone in zones.items()}
+        # The setter's temporary setting destination matches the existing
+        # checked full-rally anchor. Defensive zone 1 is a later moment.
+        positions["S"] = dict(scenarios["open-smart-special"]["theirs"]["trial"][key]["steps"][3]["positions"]["S"])
+        coach_first_set[key] = {"zones": zones, "positions": positions}
+
     return {
         "schemaVersion": 5,
         "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
@@ -220,21 +230,12 @@ def build_database(reference, coach):
         "rotations": base,
         "coachRotations": coach_base,
         "coachPassers": coach["passers"],
-        "coachPostReception": {
-            str(rotation): {
-                "zones": coach["postReceptionZones"][str(rotation)],
-                "positions": {
-                    player: dict(COACH_PLAY_ZONES[zone])
-                    for player, zone in coach["postReceptionZones"][str(rotation)].items()
-                },
-            }
-            for rotation in ROTATION_ORDER
-        },
+        "coachFirstSet": coach_first_set,
         "coachReference": {
             "title": coach["title"], "date": coach["date"],
             "sourcePdfSha256": coach["sourcePdfSha256"],
             "transcription": "references/coach-open-smart-special/receive.json",
-            "postReceptionNote": coach["postReceptionNote"],
+            "firstSetNote": coach["firstSetNote"],
         },
         "rotationOrder": ROTATION_ORDER,
         "nextPosition": NEXT_POSITION,

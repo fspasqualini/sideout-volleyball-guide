@@ -106,20 +106,23 @@ def main():
         require(set(passers) == {"OH1", "OH2", next(player for player in ("MB1", "MB2")
                                                       if player in (slots["5"], slots["6"], slots["1"]))},
                 f"coach P{rotation} must use both outsides and the back-row middle")
-        destinations = data["coachPostReception"][str(rotation)]
+        destinations = data["coachFirstSet"][str(rotation)]
         zones = destinations["zones"]
-        require(zones == coach["postReceptionZones"][str(rotation)],
-                f"coach P{rotation}: playing zones differ from checked transcription")
+        require(zones == coach["firstSetZones"][str(rotation)],
+                f"coach P{rotation}: first-set zones differ from checked transcription")
         require(set(zones) == set(slots.values()), f"coach P{rotation}: missing destination")
-        require(destinations["positions"] == {player: COACH_PLAY_ZONES[zone]
-                                                for player, zone in zones.items()},
-                f"coach P{rotation}: destination markers differ from declared zones")
+        expected_points = {player: COACH_PLAY_ZONES[zone] for player, zone in zones.items()}
+        expected_points["S"] = data["scenarios"]["open-smart-special"]["theirs"]["trial"][str(rotation)]["steps"][3]["positions"]["S"]
+        require(destinations["positions"] == expected_points,
+                f"coach P{rotation}: first-set markers differ from declared zones and setting anchor")
+        require(55 <= expected_points["S"]["x"] <= 75 and 0 <= expected_points["S"]["y"] <= 25,
+                f"coach P{rotation}: setter not near the zone 2-3 setting area")
         for player, zone in zones.items():
             slot = position_of(slots, player)
-            if slot in (1, 5, 6):
-                expected_zone = "5" if player.startswith("MB") else "6" if player.startswith("OH") else "1"
-            elif player == "S":
+            if player == "S":
                 expected_zone = "2-3"
+            elif slot in (1, 5, 6):
+                expected_zone = "5" if player.startswith("MB") else "6" if player.startswith("OH") else "1"
             elif player.startswith("MB"):
                 expected_zone = "3"
             elif rotation == 1 and player == "OP":

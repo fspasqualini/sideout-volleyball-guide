@@ -2487,6 +2487,13 @@ h1 em {
 .smart101-court { position: relative; height: 430px; background: #dcedf8; border: 2px solid #8dbdd8; }
 .smart101-zone-lines { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 33.25%, #fff9 33.25% 33.5%, transparent 33.5% 66.5%, #fff9 66.5% 66.75%, transparent 66.75%); pointer-events: none; }
 .smart101-attack-line { position: absolute; top: 33.333%; left: 0; right: 0; border-top: 2px dashed white; }
+.smart101-routes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.smart101-route { color: #387ea7; opacity: .52; }
+.smart101-route.setter { color: #176f9e; opacity: .85; }
+.smart101-route.selected { color: #c32935; opacity: 1; }
+.smart101-route line { stroke: currentColor; stroke-width: 2.5px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.smart101-route path { fill: currentColor; }
+.smart101-route circle { fill: #fff; stroke: currentColor; stroke-width: 2px; vector-effect: non-scaling-stroke; }
 .smart101-players { position: absolute; inset: 0; }
 .smart101-player {
   position: absolute;
