@@ -1,6 +1,6 @@
 # Sideout
 
-A beginner-friendly, bilingual (Italian/English) guide to six-player indoor volleyball rotations and roles. Choose Open smart special or a 5–1 lineup with or without a Libero, your role, numbered rotation position, serve situation, and rule set to see a path and short instructions. The default view uses Open smart special, Italian, FIVB 2025–28, the other team's serve, and the illustrative opponent court.
+A beginner-friendly, bilingual (Italian/English) guide to six-player indoor volleyball rotations and roles. The default **Open Smart 101** view focuses on the six serve-reception diagrams in the Sporting Club 2000 coach PDF. The rally animation and personal phase cards remain available as separate tabs.
 
 ## Run locally
 
@@ -23,6 +23,8 @@ There are no build dependencies or environment variables.
 All asset links are relative, so the same files work at a GitHub Pages project URL or a custom domain. The "Share this view" button copies the current language, lineup, role, and rule settings in the URL. The language choice is also remembered in the browser.
 
 ## Content scope
+
+**Open Smart 101** shows one of the coach's P1, P6, P5, P4, P3, or P2 reception arrangements at a time. P is the setter; the number is the setter's rotation zone, and the six diagrams are consecutive rotations of one lineup. Every court uses the checked reception coordinates, shows all six players and their numbered rotation spots, highlights the two outsides and the back-row middle as regular passers, and lets a player select a role. The opposite is outside that regular passing line but covers very short serves when needed, as the P1 note in the PDF says. Concise spacing cues come from the PDF text. This view does not show inferred attack or defense paths. Under the [FIPAV 2026/27 competition provisions](https://www.federvolley.it/documenti-UG), receiving players may change positions when the server begins a movement tied to the service action; this local timing is explained directly in the view. The FIPAV [October 2026 clarification](https://overjoyed-wilson.s3.eu-south-mil.io.cloud.ovh.net/s3fs-public/2026-10/Precisazioni%20ed%20istruzioni%20operative%20Sperimentazioni%20Regolamentari%202026.2027.pdf?VersionId=1791656462.573255) distinguishes that movement from unrelated ball bouncing or repositioning. The original PDF's third panel incorrectly says “zone 1 · P5”; its diagram is P5.
 
 The optional [agent skills used for interface reviews](docs/agent-skills.md)
 are documented separately from the static site.

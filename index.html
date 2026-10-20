@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=8" />
+    <link rel="stylesheet" href="./styles.css?v=9" />
     <title>Sideout — Find your place on court</title>
   </head>
   <body>
@@ -132,9 +132,41 @@
               </div>
             </div>
             <div class="playbook-tabs" role="tablist" aria-label="Playbook views">
-              <button id="animation-tab" type="button" role="tab" aria-controls="animation-panel" aria-selected="true" data-view="animation">Rally animation</button>
+              <button id="smart101-tab" type="button" role="tab" aria-controls="smart101-panel" aria-selected="true" data-view="smart101">Open Smart 101</button>
+              <button id="animation-tab" type="button" role="tab" aria-controls="animation-panel" aria-selected="false" data-view="animation" tabindex="-1">Rally animation</button>
               <button id="cards-tab" type="button" role="tab" aria-controls="cards-panel" aria-selected="false" data-view="cards" tabindex="-1">My phase cards</button>
             </div>
+            <section class="smart101-panel" id="smart101-panel" role="tabpanel" aria-labelledby="smart101-tab" tabindex="0">
+              <div class="smart101-heading">
+                <span class="court-kicker" id="smart101-kicker"></span>
+                <h3 id="smart101-title"></h3>
+                <p id="smart101-intro"></p>
+              </div>
+              <div class="smart101-rotation" id="smart101-rotation" role="group" aria-label="Choose setter rotation"></div>
+              <div class="smart101-layout">
+                <div class="smart101-diagram">
+                  <div class="smart101-net" id="smart101-net"></div>
+                  <div class="smart101-court" id="smart101-court" role="group" aria-label="Our six players in serve reception">
+                    <div class="smart101-attack-line"></div>
+                    <div class="smart101-zone-lines" aria-hidden="true"></div>
+                    <div class="smart101-players" id="smart101-players"></div>
+                  </div>
+                  <div class="smart101-court-key" id="smart101-court-key"></div>
+                </div>
+                <div class="smart101-explanation">
+                  <h4 id="smart101-role-heading"></h4>
+                  <div class="smart101-role-options" id="smart101-role-options" role="group" aria-label="Choose a player"></div>
+                  <div class="smart101-role-note" id="smart101-role-note"></div>
+                  <div class="smart101-passers" id="smart101-passers"></div>
+                  <div class="smart101-checks">
+                    <h4 id="smart101-checks-heading"></h4>
+                    <ul id="smart101-checks-list"></ul>
+                  </div>
+                </div>
+              </div>
+              <p class="smart101-rule" id="smart101-rule"></p>
+              <p class="smart101-source" id="smart101-source"></p>
+            </section>
             <div class="playbook-layout">
               <aside class="controls-panel" aria-label="Player navigation">
                 <details id="player-navigation" open>
@@ -590,6 +622,6 @@
     </div>
     <div id="print-pages"></div>
     <script src="./i18n.js?v=9" defer></script>
-    <script src="./app.js?v=12" defer></script>
+    <script src="./app.js?v=13" defer></script>
   </body>
 </html>

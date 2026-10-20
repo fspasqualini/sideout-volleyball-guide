@@ -152,9 +152,94 @@ const state = {
     [0, 1, 2, 3, 4, 5, 6, 7],
     0,
   ),
-  view: valid(params.get("view"), ["animation", "cards"], "animation"),
+  view: valid(params.get("view"), ["smart101", "animation", "cards"], "smart101"),
 };
 if (state.lineup !== "libero" && state.role === "libero") state.role = "setter";
+
+const studyRotations = [1, 6, 5, 4, 3, 2];
+const studyPlayers = ["S", "OH1", "OH2", "MB1", "MB2", "OP"];
+let studyRotation = valid(Number(params.get("studyRotation")), studyRotations, 1);
+let studyPlayer = valid(params.get("studyPlayer"), studyPlayers, "S");
+const studyChecks = {
+  1: [
+    ["P stays behind B1 until the server starts the service action.", "P resta dietro B1 fino all'inizio dell'azione di battuta."],
+    ["O and C2 cover only very short serves.", "O e C2 coprono soltanto le battute cortissime."],
+  ],
+  6: [
+    ["O is in front of P; B2 is in front of C1.", "O è davanti a P; B2 è davanti a C1."],
+    ["P is between C1 and B1 from left to right.", "P è tra C1 e B1 da sinistra a destra."],
+  ],
+  5: [
+    ["B2 is in front of B1; C1 is left of B2.", "B2 è davanti a B1; C1 è a sinistra di B2."],
+    ["P is behind C1 and left of B1.", "P è dietro C1 e a sinistra di B1."],
+  ],
+  4: [
+    ["Across the front row: P is left of C1, and C1 is left of B2.", "Nella prima linea: P è a sinistra di C1, e C1 è a sinistra di B2."],
+    ["O stays behind B2.", "O resta dietro B2."],
+  ],
+  3: [
+    ["P is left of C1; B1 is in front of C2.", "P è a sinistra di C1; B1 è davanti a C2."],
+    ["O is between C2 and B2 from left to right.", "O è tra C2 e B2 da sinistra a destra."],
+  ],
+  2: [
+    ["C2 is left of B1; O is right of B2.", "C2 è a sinistra di B1; O è a destra di B2."],
+    ["B1 is in front of B2.", "B1 è davanti a B2."],
+  ],
+};
+
+function renderSmart101() {
+  const scenario = schemeDatabase.scenarios["open-smart-special"].theirs.trial[String(studyRotation)];
+  const bySlot = scenario.bySlot;
+  const slotOf = Object.fromEntries(Object.entries(bySlot).map(([slot, id]) => [id, Number(slot)]));
+  const passers = schemeDatabase.coachPassers[String(studyRotation)];
+  const atReceive = scenario.steps[1].positions;
+  $("smart101-kicker").textContent = copy("OPEN SMART SPECIAL · SERVE RECEPTION", "OPEN SMART SPECIAL · RICEZIONE DELLA BATTUTA");
+  $("smart101-title").textContent = copy("One team. Six rotations. Three passers.", "Una squadra. Sei rotazioni. Tre ricevitori.");
+  $("smart101-intro").textContent = copy(
+    "P1, P6, P5, P4, P3 and P2 are six turns of the same lineup. P is the setter; the number says which rotation spot the setter occupies. Move to the next turn only when your team wins back the serve.",
+    "P1, P6, P5, P4, P3 e P2 sono sei turni della stessa formazione. P è il palleggiatore; il numero indica la sua zona di rotazione. Si passa al turno successivo solo quando riconquistiamo la battuta.",
+  );
+  $("smart101-rotation").setAttribute("aria-label", copy("Choose setter rotation", "Scegli la rotazione del palleggiatore"));
+  $("smart101-rotation").innerHTML = studyRotations.map((rotation, index) =>
+    `<button type="button" data-study-rotation="${rotation}" class="${studyRotation === rotation ? "active" : ""}" aria-pressed="${studyRotation === rotation}"><strong>P${rotation}</strong><span>${copy("Setter in zone", "Palleggiatore in zona")} ${rotation}</span><small>${copy("Turn", "Turno")} ${index + 1}/6</small></button>`
+  ).join("");
+  $("smart101-net").textContent = copy("NET · FACE THIS WAY ↑", "RETE · GUARDA IN QUESTA DIREZIONE ↑");
+  $("smart101-court").setAttribute("aria-label", copy("Our six players in serve reception", "I nostri sei giocatori in ricezione"));
+  $("smart101-players").innerHTML = studyPlayers.map((id) => {
+    const point = atReceive[id];
+    const zone = slotOf[id];
+    const name = playerName(id);
+    return `<button type="button" data-study-player="${id}" class="smart101-player ${passers.includes(id) ? "passer" : ""} ${studyPlayer === id ? "selected" : ""}" style="left:${point.x}%;top:${point.y}%" aria-label="${name}, ${copy("rotation zone", "zona di rotazione")} ${zone}${passers.includes(id) ? copy(", passer", ", ricevitore") : ""}" aria-pressed="${studyPlayer === id}"><b>${markerLabel(id)}</b><small>${zone}</small></button>`;
+  }).join("");
+  $("smart101-court-key").textContent = copy(
+    "The small number is the rotation zone. The three blue markers are the regular passers; the red ring marks your player.",
+    "Il numero piccolo è la zona di rotazione. I tre pallini blu sono i ricevitori abituali; il bordo rosso indica il tuo giocatore.",
+  );
+  $("smart101-role-heading").textContent = copy("Find your player", "Trova il tuo giocatore");
+  $("smart101-role-options").setAttribute("aria-label", copy("Choose a player", "Scegli un giocatore"));
+  $("smart101-role-options").innerHTML = studyPlayers.map((id) =>
+    `<button type="button" data-study-player="${id}" class="${studyPlayer === id ? "active" : ""}" aria-pressed="${studyPlayer === id}">${markerLabel(id)} <span>${playerName(id)}</span></button>`
+  ).join("");
+  const zone = slotOf[studyPlayer];
+  const row = [4, 3, 2].includes(zone) ? copy("front row", "prima linea") : copy("back row", "seconda linea");
+  const selectedJob = passers.includes(studyPlayer)
+    ? copy("You are one of the three regular passers.", "Sei uno dei tre ricevitori abituali.")
+    : studyPlayer === "OP"
+      ? copy("You stay out of the regular passing line; cover an exceptionally short serve if needed.", "Resti fuori dalla linea di ricezione abituale; aiuti su una battuta cortissima se serve.")
+      : copy("You are outside the regular passing line in this turn.", "In questo turno sei fuori dalla linea di ricezione abituale.");
+  $("smart101-role-note").innerHTML = `<strong>${playerName(studyPlayer)} · ${copy("zone", "zona")} ${zone} · ${row}</strong><p>${selectedJob}</p>`;
+  $("smart101-passers").innerHTML = `<strong>${copy("The three passers in P", "I tre ricevitori in P")}${studyRotation}</strong><p>${passers.map(playerName).join(" · ")}</p>`;
+  $("smart101-checks-heading").textContent = copy("Check your spacing", "Controlla le distanze");
+  $("smart101-checks-list").innerHTML = studyChecks[studyRotation].map(([en, it]) => `<li>${copy(en, it)}</li>`).join("");
+  $("smart101-rule").textContent = copy(
+    "Italian 2026/27: hold the shown rotation relationships until the server's first movement tied to the serve. From then on you may move, but your front/back-row status does not change.",
+    "Italia 2026/27: rispetta i rapporti di rotazione mostrati fino al primo movimento del battitore legato alla battuta. Da quel momento puoi spostarti, ma resti giocatore di prima o seconda linea.",
+  );
+  $("smart101-source").innerHTML = copy(
+    "Positions and spacing: Sporting Club 2000 U16 reception diagrams (2015), transcribed and checked. The PDF only documents reception; this view shows no attack or defense paths. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
+    "Posizioni e rapporti: schemi di ricezione Sporting Club 2000 U16 (2015), trascritti e verificati. Il PDF documenta solo la ricezione; qui non sono mostrati percorsi di attacco o difesa. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
+  );
+}
 
 const $ = (id) => document.getElementById(id);
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -974,6 +1059,7 @@ function render() {
   if (!schemeDatabase) return;
   translateStatic(state.lang);
   renderTabs();
+  renderSmart101();
   renderOptions();
   renderCourt();
   renderTimeline();
@@ -986,11 +1072,14 @@ function render() {
   Object.entries(state).forEach(([key, value]) =>
     url.searchParams.set(key, value),
   );
+  url.searchParams.set("studyRotation", studyRotation);
+  url.searchParams.set("studyPlayer", studyPlayer);
   history.replaceState(null, "", url);
 }
 
 function renderTabs() {
-  for (const view of ["animation", "cards"]) {
+  document.body.classList.toggle("smart101-mode", state.view === "smart101");
+  for (const view of ["smart101", "animation", "cards"]) {
     const selected = state.view === view;
     const tab = $(`${view}-tab`);
     tab.setAttribute("aria-selected", String(selected));
@@ -1001,7 +1090,7 @@ function renderTabs() {
 }
 
 function chooseView(view, focus = false) {
-  if (!["animation", "cards"].includes(view)) return;
+  if (!["smart101", "animation", "cards"].includes(view)) return;
   pauseRally();
   state.view = view;
   render();
@@ -1086,6 +1175,16 @@ reducedMotion.addEventListener("change", () => { pauseRally(); renderPlayhead();
 document.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
+  if (button.dataset.studyRotation) {
+    studyRotation = Number(button.dataset.studyRotation);
+    render();
+    return;
+  }
+  if (button.dataset.studyPlayer) {
+    studyPlayer = button.dataset.studyPlayer;
+    render();
+    return;
+  }
   if (button.dataset.view) {
     chooseView(button.dataset.view);
     return;
@@ -1133,7 +1232,7 @@ document.addEventListener("click", (event) => {
 });
 
 document.querySelector(".playbook-tabs").addEventListener("keydown", (event) => {
-  const tabs = ["animation", "cards"];
+  const tabs = ["smart101", "animation", "cards"];
   const current = tabs.indexOf(state.view);
   const target = event.key === "ArrowRight" ? tabs[(current + 1) % tabs.length]
     : event.key === "ArrowLeft" ? tabs[(current + tabs.length - 1) % tabs.length]

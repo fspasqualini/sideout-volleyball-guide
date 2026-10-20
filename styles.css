@@ -2433,6 +2433,130 @@ h1 em {
 }
 #print-pages { display: none; }
 
+/* A focused reading of the six coach reception diagrams. */
+.smart101-mode .playbook-layout,
+.smart101-mode .setup-bar-heading,
+.smart101-mode .setup-lineup,
+.smart101-mode .setup-serve,
+.smart101-mode .setup-rules { display: none; }
+.smart101-mode .setup-bar { padding: 0; margin-bottom: 8px; border: 0; background: transparent; box-shadow: none; }
+.smart101-mode .setup-grid { display: flex; justify-content: flex-end; }
+.smart101-mode .setup-language { width: 112px; }
+.smart101-mode .setup-language .setup-label { display: none; }
+.smart101-mode .setup-language .language-switch { min-height: 38px; }
+.smart101-panel {
+  padding: clamp(20px, 3vw, 38px);
+  border: 1px solid #bed9e8;
+  border-radius: 18px;
+  background: #fcfeff;
+  box-shadow: var(--shadow);
+}
+.smart101-heading h3 {
+  margin: 7px 0 8px;
+  font: 800 clamp(27px, 3vw, 40px)/1.1 Outfit, sans-serif;
+  letter-spacing: -1.2px;
+}
+.smart101-heading p { max-width: 900px; line-height: 1.55; color: var(--ink-soft); }
+.smart101-rotation { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 22px 0; }
+.smart101-rotation button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid #b4d5e8;
+  border-radius: 11px;
+  background: #edf7fc;
+  color: var(--ink);
+  text-align: left;
+}
+.smart101-rotation button.active { border: 2px solid #176f9e; background: #dff1fc; padding: 11px; }
+.smart101-rotation strong { font: 800 22px Outfit, sans-serif; }
+.smart101-rotation span { font-size: 11px; line-height: 1.2; font-weight: 700; }
+.smart101-rotation small { color: var(--ink-soft); font-size: 10px; }
+.smart101-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(285px, .85fr); gap: clamp(18px, 3vw, 42px); align-items: start; }
+.smart101-diagram { min-width: 0; }
+.smart101-net {
+  padding: 9px;
+  border-bottom: 8px solid #244a63;
+  color: #244a63;
+  text-align: center;
+  font: 800 12px Outfit, sans-serif;
+  letter-spacing: 1px;
+}
+.smart101-court { position: relative; height: 430px; background: #dcedf8; border: 2px solid #8dbdd8; }
+.smart101-zone-lines { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 33.25%, #fff9 33.25% 33.5%, transparent 33.5% 66.5%, #fff9 66.5% 66.75%, transparent 66.75%); pointer-events: none; }
+.smart101-attack-line { position: absolute; top: 33.333%; left: 0; right: 0; border-top: 2px dashed white; }
+.smart101-players { position: absolute; inset: 0; }
+.smart101-player {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 2px solid #244a63;
+  border-radius: 50%;
+  background: white;
+  color: #244a63;
+  font: 800 12px Outfit, sans-serif;
+  box-shadow: 0 3px 8px #244a632b;
+  z-index: 1;
+}
+.smart101-player.passer { background: #145e85; border-color: white; color: white; }
+.smart101-player.selected { outline: 4px solid #c32935; outline-offset: 1px; z-index: 2; }
+.smart101-player small {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #527f9a;
+  border-radius: 50%;
+  background: white;
+  color: #244a63;
+  font: 800 11px Outfit, sans-serif;
+}
+.smart101-court-key { margin: 12px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+.smart101-explanation { min-width: 0; }
+.smart101-explanation h4 { margin: 0 0 11px; font: 800 18px Outfit, sans-serif; }
+.smart101-role-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.smart101-role-options button { min-height: 47px; padding: 7px 10px; border: 1px solid #b4d5e8; border-radius: 9px; background: #f4fafd; color: var(--ink); text-align: left; font-weight: 800; }
+.smart101-role-options button.active { border: 2px solid #c32935; padding: 6px 9px; background: #fff3f3; }
+.smart101-role-options span { display: block; font-size: 11px; font-weight: 600; }
+.smart101-role-note, .smart101-passers, .smart101-checks { margin-top: 13px; padding: 15px; border: 1px solid #c1ddea; border-radius: 11px; background: #eff8fd; line-height: 1.45; }
+.smart101-role-note strong, .smart101-passers strong { font: 800 14px Outfit, sans-serif; }
+.smart101-role-note p, .smart101-passers p { margin: 5px 0 0; font-size: 13px; }
+.smart101-checks { background: white; }
+.smart101-checks h4 { font-size: 15px; }
+.smart101-checks ul { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.55; }
+.smart101-checks li + li { margin-top: 6px; }
+.smart101-rule { margin: 24px 0 10px; padding: 14px 17px; border-left: 4px solid #176f9e; background: #e8f5fc; line-height: 1.5; font-size: 13px; }
+.smart101-source { color: var(--ink-soft); font-size: 11px; line-height: 1.5; }
+.smart101-source a { color: #0c5f8b; text-decoration: underline; font-weight: 700; }
+.smart101-panel button:focus-visible { outline: 3px solid #ff8624; outline-offset: 3px; }
+@media (max-width: 980px) {
+  .smart101-layout { grid-template-columns: 1fr; }
+  .smart101-court { height: clamp(330px, 48vw, 430px); }
+}
+@media (max-width: 680px) {
+  .smart101-rotation { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .smart101-rotation button { min-height: 75px; }
+  .smart101-court { height: 350px; }
+  .smart101-panel { padding: 18px; }
+  .playbook-tabs { flex-wrap: wrap; }
+  .playbook-tabs button { font-size: 11px; }
+}
+@media (max-width: 400px) {
+  .smart101-rotation { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .smart101-player { width: 38px; height: 38px; }
+}
+
 @page { size: A4 portrait; margin: 8mm; }
 @media print {
   html.printing-cards, html.printing-cards body { width: auto; margin: 0; padding: 0; background: white; }
