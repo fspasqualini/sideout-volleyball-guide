@@ -12,6 +12,7 @@ const staticItalian = {
   "next move.": "prossima mossa.",
   "New to volleyball? Choose a lineup with or without a libero, then pick your role and rotation. We’ll show where you start, where you move, and what to do when the ball is in play.": "Sei alle prime armi? Scegli una formazione con o senza Libero, poi il tuo ruolo e la tua posizione nella rotazione. Ti mostriamo da dove parti, dove ti sposti e cosa fai durante lo scambio.",
   "New to volleyball? Choose a team plan, then pick your role and rotation. We’ll show where you start, where you move, and what to do when the ball is in play.": "Sei alle prime armi? Scegli uno schema, poi il tuo ruolo e la tua posizione nella rotazione. Ti mostriamo da dove parti, dove ti sposti e cosa fai durante lo scambio.",
+  "Start with the six serve-reception rotations and find your place. Choose Open smart special when you want to follow the full rally.": "Parti dalle sei rotazioni in ricezione e trova il tuo posto. Scegli Open Smart Special quando vuoi seguire l'intero scambio.",
   "Explore the court": "Esplora il campo",
   "Start with the basics": "Parti dalle basi",
   "Made for first games, team talks, and quick refreshers.": "Per le prime partite, le riunioni di squadra e i ripassi veloci.",

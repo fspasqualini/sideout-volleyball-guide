@@ -141,7 +141,7 @@ const valid = (value, options, fallback) =>
 const state = {
   lang: valid(params.get("lang"), ["en", "it"],
     valid(localStorage.getItem("sideout-lang"), ["en", "it"], "it")),
-  lineup: valid(params.get("lineup"), ["open-smart-special", "libero", "no-libero"], "open-smart-special"),
+  lineup: valid(params.get("lineup"), ["open-smart-one-on-one", "open-smart-special", "libero", "no-libero"], "open-smart-one-on-one"),
   role: valid(params.get("role"), Object.keys(roles), "setter"),
   position: valid(Number(params.get("position")), [1, 2, 3, 4, 5, 6], 1),
   serve: valid(params.get("serve"), ["ours", "theirs"], "theirs"),
@@ -155,9 +155,15 @@ const state = {
   view: valid(params.get("view"), ["smart101", "animation", "cards"], "smart101"),
 };
 if (state.lineup !== "libero" && state.role === "libero") state.role = "setter";
+if (state.lineup === "open-smart-one-on-one") state.view = "smart101";
+else if (state.view === "smart101") state.view = "animation";
 
 const studyRotations = [1, 6, 5, 4, 3, 2];
 const studyPlayers = ["S", "OH1", "OH2", "MB1", "MB2", "OP"];
+const studyRoleByPlayer = {
+  S: "setter", OH1: "outside", OH2: "outside2",
+  MB1: "middle", MB2: "middle2", OP: "opposite",
+};
 let studyRotation = valid(Number(params.get("studyRotation")), studyRotations, 1);
 let studyPlayer = valid(params.get("studyPlayer"), studyPlayers, "S");
 const studyChecks = {
@@ -188,12 +194,13 @@ const studyChecks = {
 };
 
 function renderSmart101() {
+  $("smart101-panel").setAttribute("aria-label", "Open Smart One on One");
   const scenario = schemeDatabase.scenarios["open-smart-special"].theirs.trial[String(studyRotation)];
   const bySlot = scenario.bySlot;
   const slotOf = Object.fromEntries(Object.entries(bySlot).map(([slot, id]) => [id, Number(slot)]));
   const passers = schemeDatabase.coachPassers[String(studyRotation)];
   const atReceive = scenario.steps[1].positions;
-  $("smart101-kicker").textContent = copy("OPEN SMART SPECIAL · SERVE RECEPTION", "OPEN SMART SPECIAL · RICEZIONE DELLA BATTUTA");
+  $("smart101-kicker").textContent = copy("OPEN SMART ONE ON ONE · SERVE RECEPTION", "OPEN SMART ONE ON ONE · RICEZIONE DELLA BATTUTA");
   $("smart101-title").textContent = copy("One team. Six rotations. Three passers.", "Una squadra. Sei rotazioni. Tre ricevitori.");
   $("smart101-intro").textContent = copy(
     "P1, P6, P5, P4, P3 and P2 are six turns of the same lineup. P is the setter; the number says which rotation spot the setter occupies. Move to the next turn only when your team wins back the serve.",
@@ -360,13 +367,13 @@ const selectedStartingId = {
 
 function activeLineup() {
   const anchor = selectedStartingId[state.role];
-  const rotations = state.lineup === "open-smart-special"
+  const rotations = ["open-smart-special", "open-smart-one-on-one"].includes(state.lineup)
     ? schemeDatabase.coachRotations : schemeDatabase.rotations;
   const rotation = schemeDatabase.rotationOrder.find((number) =>
     rotations[number][state.position] === anchor,
   );
   if (rotation === undefined) throw new Error(`No verified rotation for ${state.role} in ${state.position}`);
-  const variant = state.lineup;
+  const variant = state.lineup === "open-smart-one-on-one" ? "open-smart-special" : state.lineup;
   const scenario = schemeDatabase.scenarios[variant][state.serve][state.rules][rotation];
   const candidate = {
     setter: "S", outside: "OH1", outside2: "OH2", opposite: "OP", middle: "MB1",
@@ -751,12 +758,17 @@ function renderOptions() {
       button.setAttribute("aria-pressed", String(active));
     });
   }
-  $("lineup-help").textContent = state.lineup === "open-smart-special"
-    ? copy("Coach's three-player receive: two outsides and the back-row middle. No Libero; the opposite covers only very short serves.", "Ricezione a tre del coach: due bande e il centrale dietro. Senza Libero; l'Opposto copre solo le battute cortissime.")
+  $("lineup-help").textContent = state.lineup === "open-smart-one-on-one"
+    ? copy("The coach's six serve-reception diagrams, one rotation at a time. Three regular passers; no later rally phases.", "I sei schemi di ricezione del coach, una rotazione alla volta. Tre ricevitori abituali; senza le fasi successive dello scambio.")
+    : state.lineup === "open-smart-special"
+    ? copy("Full rally: the coach's three-player reception, followed by illustrative attack and defense phases.", "Scambio completo: ricezione a tre del coach, poi fasi illustrative di attacco e difesa.")
     : state.lineup === "libero"
       ? copy("Libero replaces the back-row middle between rallies.", "Il Libero sostituisce il centrale di seconda linea tra gli scambi.")
       : copy("Both middles stay on court, including in the back row.", "Entrambi i centrali restano in campo, anche in seconda linea.");
   $("lineup-options").setAttribute("aria-label", copy("Choose a team plan", "Scegli lo schema di squadra"));
+  document.querySelector(".setup-bar-heading p").textContent = state.lineup === "open-smart-one-on-one"
+    ? copy("Choose a simple reception plan", "Scegli lo schema semplice di ricezione")
+    : copy("Choose the rules for this view", "Scegli le regole per questa vista");
   $("player-selection-summary").textContent = `${roleInfo(state.role).name} · ${copy("position", "posizione")} ${state.position}`;
   document.querySelector(".setup-bar").setAttribute("aria-label", copy("General game settings", "Impostazioni generali di gioco"));
   document.querySelector(".controls-panel").setAttribute("aria-label", copy("Player navigation", "Scelte del giocatore"));
@@ -1078,8 +1090,12 @@ function render() {
 }
 
 function renderTabs() {
-  document.body.classList.toggle("smart101-mode", state.view === "smart101");
-  for (const view of ["smart101", "animation", "cards"]) {
+  const oneOnOne = state.lineup === "open-smart-one-on-one";
+  document.body.classList.toggle("smart101-mode", oneOnOne);
+  $("smart101-panel").hidden = !oneOnOne;
+  document.querySelector(".playbook-tabs").hidden = oneOnOne;
+  document.querySelector(".playbook-layout").hidden = oneOnOne;
+  for (const view of ["animation", "cards"]) {
     const selected = state.view === view;
     const tab = $(`${view}-tab`);
     tab.setAttribute("aria-selected", String(selected));
@@ -1090,7 +1106,7 @@ function renderTabs() {
 }
 
 function chooseView(view, focus = false) {
-  if (!["smart101", "animation", "cards"].includes(view)) return;
+  if (state.lineup === "open-smart-one-on-one" || !["animation", "cards"].includes(view)) return;
   pauseRally();
   state.view = view;
   render();
@@ -1205,7 +1221,22 @@ document.addEventListener("click", (event) => {
   }
   if (button.dataset.lineup) {
     pauseRally();
-    state.lineup = button.dataset.lineup;
+    const nextLineup = button.dataset.lineup;
+    if (nextLineup === "open-smart-one-on-one" && state.lineup === "open-smart-special") {
+      const team = activeLineup();
+      studyRotation = schemeDatabase.rotationOrder[team.turns];
+      if (studyPlayers.includes(team.selected)) studyPlayer = team.selected;
+    }
+    if (state.lineup === "open-smart-one-on-one" && nextLineup === "open-smart-special") {
+      state.role = studyRoleByPlayer[studyPlayer];
+      state.position = Number(Object.entries(schemeDatabase.coachRotations[String(studyRotation)])
+        .find(([, id]) => id === studyPlayer)[0]);
+    }
+    state.lineup = nextLineup;
+    state.view = nextLineup === "open-smart-one-on-one" ? "smart101" : "animation";
+    if (nextLineup === "open-smart-one-on-one") state.serve = "theirs";
+    state.step = 0;
+    playhead = 0;
     if (state.lineup !== "libero" && state.role === "libero") state.role = "middle";
     render();
   }
@@ -1232,7 +1263,7 @@ document.addEventListener("click", (event) => {
 });
 
 document.querySelector(".playbook-tabs").addEventListener("keydown", (event) => {
-  const tabs = ["smart101", "animation", "cards"];
+  const tabs = ["animation", "cards"];
   const current = tabs.indexOf(state.view);
   const target = event.key === "ArrowRight" ? tabs[(current + 1) % tabs.length]
     : event.key === "ArrowLeft" ? tabs[(current + tabs.length - 1) % tabs.length]

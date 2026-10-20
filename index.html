@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=9" />
+    <link rel="stylesheet" href="./styles.css?v=10" />
     <title>Sideout — Find your place on court</title>
   </head>
   <body>
@@ -47,9 +47,8 @@
             </div>
             <h1 id="hero-title">Know your <em>next move.</em></h1>
             <p>
-              New to volleyball? Choose a team plan, then
-              pick your role and rotation. We’ll show where you start, where you
-              move, and what to do when the ball is in play.
+              Start with the six serve-reception rotations and find your place.
+              Choose Open smart special when you want to follow the full rally.
             </p>
             <div class="hero-actions">
               <a class="button button-primary" href="#playbook"
@@ -99,6 +98,7 @@
                 <fieldset class="setup-control setup-lineup">
                   <legend>Lineup</legend>
                   <div class="segmented" id="lineup-options">
+                    <button type="button" data-lineup="open-smart-one-on-one">Open Smart One on One</button>
                     <button type="button" data-lineup="open-smart-special">Open smart special</button>
                     <button type="button" data-lineup="libero">5–1 with Libero</button>
                     <button type="button" data-lineup="no-libero">5–1 without Libero</button>
@@ -132,11 +132,10 @@
               </div>
             </div>
             <div class="playbook-tabs" role="tablist" aria-label="Playbook views">
-              <button id="smart101-tab" type="button" role="tab" aria-controls="smart101-panel" aria-selected="true" data-view="smart101">Open Smart 101</button>
               <button id="animation-tab" type="button" role="tab" aria-controls="animation-panel" aria-selected="false" data-view="animation" tabindex="-1">Rally animation</button>
               <button id="cards-tab" type="button" role="tab" aria-controls="cards-panel" aria-selected="false" data-view="cards" tabindex="-1">My phase cards</button>
             </div>
-            <section class="smart101-panel" id="smart101-panel" role="tabpanel" aria-labelledby="smart101-tab" tabindex="0">
+            <section class="smart101-panel" id="smart101-panel" aria-label="Open Smart One on One" tabindex="0">
               <div class="smart101-heading">
                 <span class="court-kicker" id="smart101-kicker"></span>
                 <h3 id="smart101-title"></h3>
@@ -621,7 +620,7 @@
       </footer>
     </div>
     <div id="print-pages"></div>
-    <script src="./i18n.js?v=9" defer></script>
-    <script src="./app.js?v=13" defer></script>
+    <script src="./i18n.js?v=10" defer></script>
+    <script src="./app.js?v=14" defer></script>
   </body>
 </html>

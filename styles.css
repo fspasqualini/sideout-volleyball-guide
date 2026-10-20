@@ -1889,7 +1889,7 @@ h1 em {
 }
 .setup-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 1.5fr) minmax(230px, 1.3fr) minmax(190px, 1fr) 96px;
+  grid-template-columns: minmax(340px, 2fr) minmax(230px, 1.3fr) minmax(190px, 1fr) 96px;
   gap: 16px;
   align-items: start;
 }
@@ -1912,7 +1912,7 @@ h1 em {
   min-height: 45px;
 }
 .setup-lineup .segmented {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .setup-control .segmented button {
   font-size: 12px;
@@ -2435,15 +2435,9 @@ h1 em {
 
 /* A focused reading of the six coach reception diagrams. */
 .smart101-mode .playbook-layout,
-.smart101-mode .setup-bar-heading,
-.smart101-mode .setup-lineup,
 .smart101-mode .setup-serve,
 .smart101-mode .setup-rules { display: none; }
-.smart101-mode .setup-bar { padding: 0; margin-bottom: 8px; border: 0; background: transparent; box-shadow: none; }
-.smart101-mode .setup-grid { display: flex; justify-content: flex-end; }
-.smart101-mode .setup-language { width: 112px; }
-.smart101-mode .setup-language .setup-label { display: none; }
-.smart101-mode .setup-language .language-switch { min-height: 38px; }
+.smart101-mode .setup-grid { grid-template-columns: minmax(0, 1fr) 112px; }
 .smart101-panel {
   padding: clamp(20px, 3vw, 38px);
   border: 1px solid #bed9e8;
@@ -2551,6 +2545,11 @@ h1 em {
   .smart101-panel { padding: 18px; }
   .playbook-tabs { flex-wrap: wrap; }
   .playbook-tabs button { font-size: 11px; }
+}
+@media (max-width: 600px) {
+  .setup-lineup .segmented { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .smart101-mode .setup-grid { grid-template-columns: 1fr; }
+  .smart101-mode .setup-language { width: 128px; justify-self: end; }
 }
 @media (max-width: 400px) {
   .smart101-rotation { grid-template-columns: repeat(2, minmax(0, 1fr)); }
