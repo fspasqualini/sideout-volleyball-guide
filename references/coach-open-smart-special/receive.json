@@ -28,6 +28,15 @@
     "2": {"S": "2-3", "OH1": "4", "OH2": "6", "MB1": "1", "MB2": "3", "OP": "6"}
   },
   "firstSetNote": "Reception positions are transcribed from the six PDF diagrams. For the first set, the setter moves to the zone 2-3 setting area even when starting in the back row; this temporary movement uses the existing full-rally setting anchor and is illustrative except for the PDF's explicit P1 instruction to leave after the serve. Other back-row players stay in their PDF reception sectors through the first set; the written middle-to-5 and outside-to-6 assignments describe later defense and do not require a first-set swap. Front-row hitters may move toward their playing areas after the first touch; exact centers and route arrows are illustrative. P1 retains the opposite/outside exception and OH1 is a front-row player despite receiving behind the attack line. P2 has no zone-2 attacker.",
+  "defenseZones": {
+    "1": {"S": "1", "OH2": "6", "MB1": "5"},
+    "6": {"S": "1", "OH1": "6", "MB1": "5"},
+    "5": {"S": "1", "OH1": "6", "MB2": "5"},
+    "4": {"OP": "1", "OH1": "6", "MB2": "5"},
+    "3": {"OP": "1", "OH2": "6", "MB2": "5"},
+    "2": {"OP": "1", "OH2": "6", "MB1": "5"}
+  },
+  "defenseNote": "The PDF's written general playing-position instructions assign back-row middles to defense zone 5, outsides to zone 6, and a back-row setter or opposite to zone 1. These are coach-chosen homes after our attack, not compulsory legal positions or documented paths. Their exact marker centers and transitions are illustrative. Back-row status remains even when a player moves toward the net; a back-row attack above net height requires take-off behind the attack line.",
   "coachingRules": [
     "The opposite never joins the three-player serve-receive line.",
     "At P1, the opposite attacks from zone 4 and Outside 1 from zone 2; they do not swap.",

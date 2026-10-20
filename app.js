@@ -194,8 +194,8 @@ const studyChecks = {
   ],
 };
 
-function renderSmart101Routes(startPoints, endPoints) {
-  return studyPlayers.map((id) => {
+function renderSmart101Routes(startPoints, endPoints, later = false) {
+  return Object.keys(endPoints).map((id) => {
     const start = startPoints[id];
     const end = endPoints[id];
     const dx = end.x - start.x;
@@ -208,8 +208,9 @@ function renderSmart101Routes(startPoints, endPoints) {
     const base = { x: tip.x - ux * 2.5, y: tip.y - uy * 2.5 };
     const left = { x: base.x - uy * 1.3, y: base.y + ux * 1.3 };
     const right = { x: base.x + uy * 1.3, y: base.y - ux * 1.3 };
-    const routeClass = id === studyPlayer ? "selected" : id === "S" ? "setter" : "teammate";
-    return `<g class="smart101-route ${routeClass}"><circle cx="${start.x}" cy="${start.y}" r="1.8"/><line x1="${start.x + ux * 2.8}" y1="${start.y + uy * 2.8}" x2="${base.x}" y2="${base.y}"/><path d="M ${left.x} ${left.y} L ${tip.x} ${tip.y} L ${right.x} ${right.y} Z"/></g>`;
+    const routeClass = `${id === "S" ? "setter" : "teammate"} ${id === studyPlayer ? "focused" : ""} ${later ? "later" : "first-set"}`;
+    const marker = later ? `<circle cx="${end.x}" cy="${end.y}" r="1.8"/>` : `<circle cx="${start.x}" cy="${start.y}" r="1.8"/>`;
+    return `<g class="smart101-route ${routeClass}">${marker}<line x1="${start.x + ux * 2.8}" y1="${start.y + uy * 2.8}" x2="${base.x}" y2="${base.y}"/><path d="M ${left.x} ${left.y} L ${tip.x} ${tip.y} L ${right.x} ${right.y} Z"/></g>`;
   }).join("");
 }
 
@@ -221,6 +222,7 @@ function renderSmart101() {
   const passers = schemeDatabase.coachPassers[String(studyRotation)];
   const atReceive = scenario.steps[1].positions;
   const destinations = schemeDatabase.coachFirstSet[String(studyRotation)];
+  const defense = schemeDatabase.coachDefense[String(studyRotation)];
   const after = studyStage === "after";
   const shownPositions = after ? destinations.positions : atReceive;
   $("smart101-kicker").textContent = copy("OPEN SMART ONE ON ONE · SERVE RECEPTION", "OPEN SMART ONE ON ONE · RICEZIONE DELLA BATTUTA");
@@ -240,15 +242,19 @@ function renderSmart101() {
   ].map(([stage, label]) => `<button type="button" data-study-stage="${stage}" class="${studyStage === stage ? "active" : ""}" aria-pressed="${studyStage === stage}">${label}</button>`).join("");
   $("smart101-stage-note").textContent = after
     ? copy(
-      `The setter heads toward zones 2–3 for the second touch. Other back-row players keep their starting sectors through this first set.${studyRotation === 1 ? " In P1, Outside 1 is front row (rotation zone 2) despite receiving deep; Middle 1 and Outside 2 do not swap." : ""} Defensive home zones matter after our attack.`,
-      `Il palleggiatore va fra le zone 2 e 3 per il secondo tocco. Gli altri giocatori di seconda linea restano nel settore iniziale durante questa prima alzata.${studyRotation === 1 ? " In P1, Banda 1 è di prima linea (rotazione 2) anche se riceve arretrata; C1 e B2 non si scambiano." : ""} Le zone difensive si usano dopo il nostro attacco.`,
+      `The solid arrows end at our first set; dashed arrows preview the coach's defensive homes after our attack. In P1, Middle 1 and Outside 2 switch sectors only for that later defense.`,
+      `Le frecce continue arrivano alla nostra prima alzata; quelle tratteggiate anticipano le zone di difesa del coach dopo il nostro attacco. In P1, C1 e B2 si scambiano settore solo per quella difesa successiva.`,
     )
     : copy("Our positions before the opposing server starts the serve action, as drawn in the coach's six reception diagrams.", "Le nostre posizioni prima che il battitore avversario inizi l'azione di battuta, come nei sei disegni del coach.");
   $("smart101-net").textContent = copy("NET · FACE THIS WAY ↑", "RETE · GUARDA IN QUESTA DIREZIONE ↑");
   $("smart101-court").setAttribute("aria-label", after
     ? copy("Our six players ready for the first set", "I nostri sei giocatori pronti alla prima alzata")
     : copy("Our six players in serve reception", "I nostri sei giocatori in ricezione"));
-  $("smart101-routes").innerHTML = after ? renderSmart101Routes(atReceive, shownPositions) : "";
+  $("smart101-routes").innerHTML = after
+    ? renderSmart101Routes(shownPositions, defense.positions, true) + renderSmart101Routes(atReceive, shownPositions)
+    : "";
+  $("smart101-legend").hidden = !after;
+  $("smart101-legend").innerHTML = `<span class="smart101-legend-item"><i class="setter"></i>${copy("Red: P, needed in this plan", "Rosso: P, necessario nello schema")}</span><span class="smart101-legend-item"><i class="teammate"></i>${copy("Blue: optional tactical moves", "Blu: spostamenti tattici opzionali")}</span><span class="smart101-legend-item"><i class="later"></i>${copy("Dashed: after our attack", "Tratteggiato: dopo il nostro attacco")}</span><span class="smart101-legend-item"><i class="focused"></i>${copy("Purple ring: selected player", "Bordo viola: giocatore selezionato")}</span>`;
   $("smart101-players").innerHTML = studyPlayers.map((id) => {
     const point = shownPositions[id];
     const zone = after ? destinations.zones[id] : slotOf[id];
@@ -256,8 +262,8 @@ function renderSmart101() {
     return `<button type="button" data-study-player="${id}" class="smart101-player ${passers.includes(id) ? "passer" : ""} ${studyPlayer === id ? "selected" : ""}" style="left:${point.x}%;top:${point.y}%" aria-label="${name}, ${copy(after ? "playing zone" : "rotation zone", after ? "zona di gioco" : "zona di rotazione")} ${zone}${passers.includes(id) ? copy(", regular passer", ", ricevitore abituale") : ""}" aria-pressed="${studyPlayer === id}"><b>${markerLabel(id)}</b><small>${zone}</small></button>`;
   }).join("");
   $("smart101-court-key").textContent = after
-    ? copy("Hollow dots mark reception starts; arrows show moves toward the first set. Players without arrows stay in their reception sectors. Small numbers show current playing sectors, not rotation status. Blue marks passers; red marks your player.", "I cerchietti vuoti segnano la partenza in ricezione; le frecce mostrano gli spostamenti per la prima alzata. Chi non ha freccia resta nel suo settore di ricezione. I numeri piccoli indicano i settori attuali, non la posizione di rotazione. Il blu indica i ricevitori; il rosso il tuo giocatore.")
-    : copy("The small number is the rotation zone. The three blue markers are the regular passers; the red ring marks your player.", "Il numero piccolo è la zona di rotazione. I tre pallini blu sono i ricevitori abituali; il bordo rosso indica il tuo giocatore.");
+    ? copy("Hollow starts mark reception positions; hollow ends on dashed routes mark later defensive homes. Solid arrows lead to the first set. Small numbers show playing sectors, while front/back-row status stays with the rotation.", "I cerchietti vuoti all'inizio indicano la ricezione; quelli alla fine delle tratteggiate indicano le zone difensive successive. Le frecce continue portano alla prima alzata. I numeri piccoli sono i settori di gioco; la prima o seconda linea resta quella di rotazione.")
+    : copy("The small number is the rotation zone. The three blue markers are the regular passers; the purple ring marks your player.", "Il numero piccolo è la zona di rotazione. I tre pallini blu sono i ricevitori abituali; il bordo viola indica il tuo giocatore.");
   $("smart101-role-heading").textContent = copy("Find your player", "Trova il tuo giocatore");
   $("smart101-role-options").setAttribute("aria-label", copy("Choose a player", "Scegli un giocatore"));
   $("smart101-role-options").innerHTML = studyPlayers.map((id) =>
@@ -281,10 +287,19 @@ function renderSmart101() {
     : passers.includes(studyPlayer)
       ? copy("Cover your reception lane and complete the first touch before moving toward this playing zone.", "Copri la tua corsia e completa il primo tocco prima di muoverti verso questa zona di gioco.")
       : copy("Leave the passing lane clear and move toward this playing zone as the first touch develops.", "Lascia libera la corsia di ricezione e vai verso questa zona di gioco mentre si sviluppa il primo tocco.");
+  const selectedDefenseZone = defense.zones[studyPlayer];
+  const defenseJob = selectedDefenseZone
+    ? copy(
+      `After our attack, the coach assigns you defense zone ${selectedDefenseZone}. This is a tactical choice, not a legal position requirement. ${[1, 5, 6].includes(zone) ? "You remain a back-row player. An attack completed above the net is legal only if you take off behind the 3 m line." : ""}${studyRotation === 1 && studyPlayer === "OH2" ? " If the coach chooses you as a second attack option from the back row, that is a separate play; the PDF does not assign it. Moving to central back does not turn you into the opposite." : ""}`,
+      `Dopo il nostro attacco, il coach ti assegna la zona difensiva ${selectedDefenseZone}. È una scelta tattica, non un vincolo di posizione del regolamento. ${[1, 5, 6].includes(zone) ? "Resti di seconda linea: per attaccare una palla interamente sopra la rete devi staccare dietro la linea dei 3 m." : ""}${studyRotation === 1 && studyPlayer === "OH2" ? " Se il coach ti sceglie come seconda opzione d'attacco da dietro, è una giocata distinta che il PDF non assegna. Spostarti al centro dietro non ti rende Opposto." : ""}`,
+    )
+    : copy("The coach PDF gives no later defensive destination for your front-row role here.", "Qui il PDF del coach non assegna una zona difensiva successiva al tuo ruolo di prima linea.");
   $("smart101-role-note").innerHTML = after
-    ? `<strong>${playerName(studyPlayer)} · ${copy("rotation", "rotazione")} ${zone} → ${copy("first-set zone", "zona alla prima alzata")} ${destinationZone} · ${row}</strong><p>${firstSetJob}</p>`
+    ? `<strong>${playerName(studyPlayer)} · ${copy("rotation", "rotazione")} ${zone} → ${copy("first-set zone", "zona alla prima alzata")} ${destinationZone} · ${row}</strong><p>${firstSetJob}</p><p>${defenseJob}</p>`
     : `<strong>${playerName(studyPlayer)} · ${copy("rotation zone", "zona di rotazione")} ${zone} · ${row}</strong><p>${selectedJob}</p>`;
   $("smart101-passers").innerHTML = `<strong>${copy("The three passers in P", "I tre ricevitori in P")}${studyRotation}</strong><p>${passers.map(playerName).join(" · ")}</p>`;
+  $("smart101-defense-note").hidden = !after;
+  $("smart101-defense-note").innerHTML = `<strong>${copy("After our attack · coach's defense", "Dopo il nostro attacco · difesa del coach")}</strong><ul>${Object.entries(defense.zones).map(([id, target]) => `<li><b>${markerLabel(id)}</b> ${copy("sector", "settore")} ${destinations.zones[id]} → ${copy("defense", "difesa")} ${target}</li>`).join("")}</ul><p>${copy("These blue dashed choices are later than the first set. Their routes and exact centers are illustrative. Red marks the setter's planned path; it is not imposed by the rules.", "Le scelte blu tratteggiate vengono dopo la prima alzata. Percorsi e centri esatti sono indicativi. Il rosso indica il percorso previsto del palleggiatore, non imposto dal regolamento.")}</p>`;
   $("smart101-checks").hidden = after;
   $("smart101-checks-heading").textContent = copy("Check your spacing", "Controlla le distanze");
   $("smart101-checks-list").innerHTML = studyChecks[studyRotation].map(([en, it]) => `<li>${copy(en, it)}</li>`).join("");
@@ -293,8 +308,8 @@ function renderSmart101() {
     "Italia 2026/27: rispetta i rapporti di rotazione mostrati fino al primo movimento del battitore legato alla battuta. Da quel momento puoi spostarti, ma resti giocatore di prima o seconda linea.",
   );
   $("smart101-source").innerHTML = copy(
-    "The <a href=\"https://www.sportegioco.it/index.php/schemi-di-ricezione-difesa-e-battuta/under-16-schemi-di-ricezione-a-tre-nella-pallavolo\" target=\"_blank\" rel=\"noopener noreferrer\">original Sporting Club 2000 U16 page ↗</a> explains the single-setter, three-passer idea and links to the reception PDF. The before-serve markers are transcribed from its diagrams. The first-set arrows and front-row destinations are illustrative; other back-row players stay in their starting sectors. The PDF's middle-to-5 and outside-to-6 instructions describe later defense, not a required swap during reception. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
-    "La <a href=\"https://www.sportegioco.it/index.php/schemi-di-ricezione-difesa-e-battuta/under-16-schemi-di-ricezione-a-tre-nella-pallavolo\" target=\"_blank\" rel=\"noopener noreferrer\">pagina originale dello Sporting Club 2000 U16 ↗</a> spiega l'idea di palleggiatore unico e tre ricevitori e collega il PDF. Le posizioni prima della battuta sono trascritte dai disegni. Frecce e arrivi dei giocatori di prima linea per l'alzata sono indicativi; gli altri giocatori di seconda linea restano nel settore iniziale. La regola scritta «centrale in 5, banda in 6» riguarda la difesa successiva, non uno scambio obbligato durante la ricezione. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
+    "The <a href=\"https://www.sportegioco.it/index.php/schemi-di-ricezione-difesa-e-battuta/under-16-schemi-di-ricezione-a-tre-nella-pallavolo\" target=\"_blank\" rel=\"noopener noreferrer\">original Sporting Club 2000 U16 page ↗</a> explains the single-setter, three-passer idea and links to the reception PDF. The before-serve markers are transcribed from its diagrams. The solid first-set arrows and destinations are illustrative. The PDF's written middle-to-5 and outside-to-6 instructions give later defensive homes, shown with dashed arrows; their paths and exact timing are illustrative. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
+    "La <a href=\"https://www.sportegioco.it/index.php/schemi-di-ricezione-difesa-e-battuta/under-16-schemi-di-ricezione-a-tre-nella-pallavolo\" target=\"_blank\" rel=\"noopener noreferrer\">pagina originale dello Sporting Club 2000 U16 ↗</a> spiega l'idea di palleggiatore unico e tre ricevitori e collega il PDF. Le posizioni prima della battuta sono trascritte dai disegni. Frecce continue e destinazioni alla prima alzata sono indicative. Le istruzioni scritte «centrale in 5, banda in 6» assegnano zone difensive successive, mostrate con frecce tratteggiate; percorsi e tempi esatti sono indicativi. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
   );
 }
 
@@ -1408,13 +1423,13 @@ mobileNavigation.addEventListener("change", (event) => {
   if (!event.matches) $("player-navigation").open = true;
 });
 
-fetch("./data/schemes.json?v=8")
+fetch("./data/schemes.json?v=9")
   .then((response) => {
     if (!response.ok) throw new Error(`Court database returned ${response.status}`);
     return response.json();
   })
   .then((database) => {
-    if (database.schemaVersion !== 5) throw new Error("Unsupported court database version");
+    if (database.schemaVersion !== 6) throw new Error("Unsupported court database version");
     schemeDatabase = database;
     nextPosition = database.nextPosition;
     previousPosition = Object.fromEntries(

@@ -20,8 +20,13 @@ front-row player in rotation zone 2 even though its reception marker is deep.
 The PDF's written assignments of back-row middles to zone 5, back-row outsides
 to zone 6, and back-row setter/opposite to zone 1 apply to later defense after
 our attack. They do not require two passers to swap during reception. The
-arrows and exact centers in the second view are illustrative; receivers
-complete their pass before leaving the passing lane.
+second view overlays those later homes: solid arrows lead to the first set,
+dashed arrows show the later defense. Red tracks the setter's planned setting
+movement and return to zone 1 when back row; blue marks optional tactical
+movements by teammates. These colors do not denote legal obligations. P1
+Middle 1 and Outside 2 exchange sectors only for that later defensive home.
+All arrows and exact centers are illustrative; receivers complete their pass
+before leaving the passing lane. Moving never changes front/back-row status.
 
 Coverage is explicit:
 
@@ -67,7 +72,8 @@ and `references/coach-open-smart-special/receive.json`. The latter contains
 approximate coordinates manually read from all six coach diagrams and their
 three passers. Its structured `firstSetZones` distinguish held back-row
 reception sectors from front-row attack areas and the temporary setting
-destination. They are checked for rotation identity and front/back status.
+destination. Its `defenseZones` transcribe the written role-specific back-row
+homes. Both sets are checked for rotation identity and front/back status.
 Its PDF SHA-256 is recorded there. The original coach PDF is
 not published in this repository. For Open smart special, the serve-contact
 and serve-receive positions come from the coach diagrams; later attack and

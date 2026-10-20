@@ -16,7 +16,7 @@ SOURCE = ROOT / "references/rotazionivolley/ricezione-a-3.json"
 OUTPUT = ROOT / "data/schemes.json"
 COACH = ROOT / "references/coach-open-smart-special/receive.json"
 SOURCE_SHA256 = "9fec10d49f723d5036feaa5ea78a7288d04409d759cf05c601c57d0585d0b5c2"
-COACH_TRANSCRIPTION_SHA256 = "b194e0aeeabfbe0cf80a50a0170bc5434a2f9cc42d2f22eab07922e3fd6d1a16"
+COACH_TRANSCRIPTION_SHA256 = "c294d3191e84339ae2bb4552f9695b62dfc8fff7ba99dafd238ae01d403b7b8d"
 SOURCE_REVISION = "ecd4455d2b9972fc56caa31323f8eb42855bf66f"
 
 SOURCE_TO_APP = {
@@ -207,6 +207,7 @@ def build_database(reference, coach):
                 }
 
     coach_first_set = {}
+    coach_defense = {}
     for rotation in ROTATION_ORDER:
         key = str(rotation)
         zones = coach["firstSetZones"][key]
@@ -222,9 +223,14 @@ def build_database(reference, coach):
         # checked full-rally anchor. Defensive zone 1 is a later moment.
         positions["S"] = dict(scenarios["open-smart-special"]["theirs"]["trial"][key]["steps"][3]["positions"]["S"])
         coach_first_set[key] = {"zones": zones, "positions": positions}
+        defense_zones = coach["defenseZones"][key]
+        coach_defense[key] = {
+            "zones": defense_zones,
+            "positions": {player: dict(COACH_PLAY_ZONES[zone]) for player, zone in defense_zones.items()},
+        }
 
     return {
-        "schemaVersion": 5,
+        "schemaVersion": 6,
         "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
         "reference": {
             "name": "rotazionivolley: ricezione-a-3",
@@ -238,11 +244,13 @@ def build_database(reference, coach):
         "coachRotations": coach_base,
         "coachPassers": coach["passers"],
         "coachFirstSet": coach_first_set,
+        "coachDefense": coach_defense,
         "coachReference": {
             "title": coach["title"], "date": coach["date"],
             "sourcePdfSha256": coach["sourcePdfSha256"],
             "transcription": "references/coach-open-smart-special/receive.json",
             "firstSetNote": coach["firstSetNote"],
+            "defenseNote": coach["defenseNote"],
         },
         "rotationOrder": ROTATION_ORDER,
         "nextPosition": NEXT_POSITION,

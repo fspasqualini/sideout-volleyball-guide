@@ -2488,12 +2488,22 @@ h1 em {
 .smart101-zone-lines { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 33.25%, #fff9 33.25% 33.5%, transparent 33.5% 66.5%, #fff9 66.5% 66.75%, transparent 66.75%); pointer-events: none; }
 .smart101-attack-line { position: absolute; top: 33.333%; left: 0; right: 0; border-top: 2px dashed white; }
 .smart101-routes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.smart101-route { color: #387ea7; opacity: .52; }
-.smart101-route.setter { color: #176f9e; opacity: .85; }
-.smart101-route.selected { color: #c32935; opacity: 1; }
+.smart101-route { color: #176b9a; opacity: .82; }
+.smart101-route.setter { color: #bd2533; opacity: 1; }
+.smart101-route.later { opacity: .72; }
+.smart101-route.focused { opacity: 1; }
 .smart101-route line { stroke: currentColor; stroke-width: 2.5px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.smart101-route.later line { stroke-dasharray: 6 5; }
+.smart101-route.focused line { stroke-width: 3.5px; }
 .smart101-route path { fill: currentColor; }
 .smart101-route circle { fill: #fff; stroke: currentColor; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.smart101-legend { display: flex; flex-wrap: wrap; gap: 7px 15px; margin: 14px 0 2px; color: #244a63; font-size: 12px; font-weight: 700; }
+.smart101-legend[hidden] { display: none; }
+.smart101-legend-item { display: inline-flex; align-items: center; gap: 7px; }
+.smart101-legend-item i { display: inline-block; width: 23px; border-top: 3px solid #176b9a; }
+.smart101-legend-item i.setter { border-color: #bd2533; }
+.smart101-legend-item i.later { border-style: dashed; }
+.smart101-legend-item i.focused { width: 14px; height: 14px; border: 3px solid #7937a1; border-radius: 50%; }
 .smart101-players { position: absolute; inset: 0; }
 .smart101-player {
   position: absolute;
@@ -2512,7 +2522,7 @@ h1 em {
   z-index: 1;
 }
 .smart101-player.passer { background: #145e85; border-color: white; color: white; }
-.smart101-player.selected { outline: 4px solid #c32935; outline-offset: 1px; z-index: 2; }
+.smart101-player.selected { outline: 4px solid #7937a1; outline-offset: 1px; z-index: 2; }
 .smart101-player small {
   position: absolute;
   top: -12px;
@@ -2532,11 +2542,12 @@ h1 em {
 .smart101-explanation h4 { margin: 0 0 11px; font: 800 18px Outfit, sans-serif; }
 .smart101-role-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
 .smart101-role-options button { min-height: 47px; padding: 7px 10px; border: 1px solid #b4d5e8; border-radius: 9px; background: #f4fafd; color: var(--ink); text-align: left; font-weight: 800; }
-.smart101-role-options button.active { border: 2px solid #c32935; padding: 6px 9px; background: #fff3f3; }
+.smart101-role-options button.active { border: 2px solid #7937a1; padding: 6px 9px; background: #f7f1fc; }
 .smart101-role-options span { display: block; font-size: 11px; font-weight: 600; }
-.smart101-role-note, .smart101-passers, .smart101-checks { margin-top: 13px; padding: 15px; border: 1px solid #c1ddea; border-radius: 11px; background: #eff8fd; line-height: 1.45; }
-.smart101-role-note strong, .smart101-passers strong { font: 800 14px Outfit, sans-serif; }
-.smart101-role-note p, .smart101-passers p { margin: 5px 0 0; font-size: 13px; }
+.smart101-role-note, .smart101-passers, .smart101-defense-note, .smart101-checks { margin-top: 13px; padding: 15px; border: 1px solid #c1ddea; border-radius: 11px; background: #eff8fd; line-height: 1.45; }
+.smart101-role-note strong, .smart101-passers strong, .smart101-defense-note strong { font: 800 14px Outfit, sans-serif; }
+.smart101-role-note p, .smart101-passers p, .smart101-defense-note p { margin: 5px 0 0; font-size: 13px; }
+.smart101-defense-note ul { margin: 8px 0; padding-left: 20px; font-size: 13px; }
 .smart101-checks { background: white; }
 .smart101-checks h4 { font-size: 15px; }
 .smart101-checks ul { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.55; }

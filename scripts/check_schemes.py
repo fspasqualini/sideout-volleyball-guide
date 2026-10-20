@@ -50,7 +50,7 @@ def main():
     if args.coach_pdf:
         require(hashlib.sha256(args.coach_pdf.read_bytes()).hexdigest() == coach["sourcePdfSha256"],
                 "local coach PDF differs from transcribed source")
-    require(data["schemaVersion"] == 5, "unsupported database schema")
+    require(data["schemaVersion"] == 6, "unsupported database schema")
     require(data["rotationOrder"] == ROTATION_ORDER, "rotation sequence differs from FIVB 7.6")
     require(data["nextPosition"] == {str(k): v for k, v in NEXT_POSITION.items()},
             "sideout rotation differs from FIVB 7.6")
@@ -122,6 +122,18 @@ def main():
                 f"coach P{rotation}: first-set markers differ from declared zones and setting anchor")
         require(55 <= expected_points["S"]["x"] <= 75 and 0 <= expected_points["S"]["y"] <= 25,
                 f"coach P{rotation}: setter not near the zone 2-3 setting area")
+        defense = data["coachDefense"][str(rotation)]
+        defense_zones = defense["zones"]
+        require(defense_zones == coach["defenseZones"][str(rotation)],
+                f"coach P{rotation}: defense zones differ from the written coach instructions")
+        require(set(defense_zones) == {slots[slot] for slot in ("1", "5", "6")},
+                f"coach P{rotation}: defense homes must describe the three back-row players")
+        for player, defense_zone in defense_zones.items():
+            expected_defense_zone = "5" if player.startswith("MB") else "6" if player.startswith("OH") else "1"
+            require(defense_zone == expected_defense_zone,
+                    f"coach P{rotation}: {player} defense home must be zone {expected_defense_zone}")
+            require(defense["positions"][player] == COACH_PLAY_ZONES[defense_zone],
+                    f"coach P{rotation}: {player} defense marker differs from declared home")
         for player, zone in zones.items():
             slot = position_of(slots, player)
             if player == "S":
@@ -150,6 +162,8 @@ def main():
                 "y": coach["receiveAtContact"]["1"][player][1],
             } for player in ("MB1", "OH2")),
                     "coach P1: back-row passers must not swap before our first set")
+            require(defense_zones["MB1"] == "5" and defense_zones["OH2"] == "6",
+                    "coach P1: later C1/B2 defense switch must remain available")
 
     scenarios_checked = 0
     steps_checked = 0

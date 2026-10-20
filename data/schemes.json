@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "scope": "5-1 / three receivers, including a separate coach-supplied Open smart special",
   "reference": {
     "name": "rotazionivolley: ricezione-a-3",
@@ -359,12 +359,141 @@
       }
     }
   },
+  "coachDefense": {
+    "1": {
+      "zones": {
+        "S": "1",
+        "OH2": "6",
+        "MB1": "5"
+      },
+      "positions": {
+        "S": {
+          "x": 82,
+          "y": 75
+        },
+        "OH2": {
+          "x": 50,
+          "y": 75
+        },
+        "MB1": {
+          "x": 18,
+          "y": 75
+        }
+      }
+    },
+    "6": {
+      "zones": {
+        "S": "1",
+        "OH1": "6",
+        "MB1": "5"
+      },
+      "positions": {
+        "S": {
+          "x": 82,
+          "y": 75
+        },
+        "OH1": {
+          "x": 50,
+          "y": 75
+        },
+        "MB1": {
+          "x": 18,
+          "y": 75
+        }
+      }
+    },
+    "5": {
+      "zones": {
+        "S": "1",
+        "OH1": "6",
+        "MB2": "5"
+      },
+      "positions": {
+        "S": {
+          "x": 82,
+          "y": 75
+        },
+        "OH1": {
+          "x": 50,
+          "y": 75
+        },
+        "MB2": {
+          "x": 18,
+          "y": 75
+        }
+      }
+    },
+    "4": {
+      "zones": {
+        "OP": "1",
+        "OH1": "6",
+        "MB2": "5"
+      },
+      "positions": {
+        "OP": {
+          "x": 82,
+          "y": 75
+        },
+        "OH1": {
+          "x": 50,
+          "y": 75
+        },
+        "MB2": {
+          "x": 18,
+          "y": 75
+        }
+      }
+    },
+    "3": {
+      "zones": {
+        "OP": "1",
+        "OH2": "6",
+        "MB2": "5"
+      },
+      "positions": {
+        "OP": {
+          "x": 82,
+          "y": 75
+        },
+        "OH2": {
+          "x": 50,
+          "y": 75
+        },
+        "MB2": {
+          "x": 18,
+          "y": 75
+        }
+      }
+    },
+    "2": {
+      "zones": {
+        "OP": "1",
+        "OH2": "6",
+        "MB1": "5"
+      },
+      "positions": {
+        "OP": {
+          "x": 82,
+          "y": 75
+        },
+        "OH2": {
+          "x": 50,
+          "y": 75
+        },
+        "MB1": {
+          "x": 18,
+          "y": 75
+        }
+      }
+    }
+  },
   "coachReference": {
     "title": "SPORTING CLUB 2000 - Schemi di ricezione a 3 nella pallavolo - Under 16",
     "date": "2015-03-14",
     "sourcePdfSha256": "40c49f169f65788ee71e43dc7dfb2eacb422900243e864b985adf25bacfc7bf9",
     "transcription": "references/coach-open-smart-special/receive.json",
-    "firstSetNote": "Reception positions are transcribed from the six PDF diagrams. For the first set, the setter moves to the zone 2-3 setting area even when starting in the back row; this temporary movement uses the existing full-rally setting anchor and is illustrative except for the PDF's explicit P1 instruction to leave after the serve. Other back-row players stay in their PDF reception sectors through the first set; the written middle-to-5 and outside-to-6 assignments describe later defense and do not require a first-set swap. Front-row hitters may move toward their playing areas after the first touch; exact centers and route arrows are illustrative. P1 retains the opposite/outside exception and OH1 is a front-row player despite receiving behind the attack line. P2 has no zone-2 attacker."
+    "firstSetNote": "Reception positions are transcribed from the six PDF diagrams. For the first set, the setter moves to the zone 2-3 setting area even when starting in the back row; this temporary movement uses the existing full-rally setting anchor and is illustrative except for the PDF's explicit P1 instruction to leave after the serve. Other back-row players stay in their PDF reception sectors through the first set; the written middle-to-5 and outside-to-6 assignments describe later defense and do not require a first-set swap. Front-row hitters may move toward their playing areas after the first touch; exact centers and route arrows are illustrative. P1 retains the opposite/outside exception and OH1 is a front-row player despite receiving behind the attack line. P2 has no zone-2 attacker.",
+    "defenseNote": "The PDF's written general playing-position instructions assign back-row middles to defense zone 5, outsides to zone 6, and a back-row setter or opposite to zone 1. These are coach-chosen homes after our attack, not compulsory legal positions or documented paths. Their exact marker centers and transitions are illustrative. Back-row status remains even when a player moves toward the net; a back-row attack above net height requires take-off behind the attack line."
   },
   "rotationOrder": [
     1,
