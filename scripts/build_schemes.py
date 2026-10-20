@@ -16,7 +16,7 @@ SOURCE = ROOT / "references/rotazionivolley/ricezione-a-3.json"
 OUTPUT = ROOT / "data/schemes.json"
 COACH = ROOT / "references/coach-open-smart-special/receive.json"
 SOURCE_SHA256 = "9fec10d49f723d5036feaa5ea78a7288d04409d759cf05c601c57d0585d0b5c2"
-COACH_TRANSCRIPTION_SHA256 = "dca8b85a36f74d916f9dc8341aed25ce5d16f094e9670b5ff5a1cc4c00cf9b08"
+COACH_TRANSCRIPTION_SHA256 = "b194e0aeeabfbe0cf80a50a0170bc5434a2f9cc42d2f22eab07922e3fd6d1a16"
 SOURCE_REVISION = "ecd4455d2b9972fc56caa31323f8eb42855bf66f"
 
 SOURCE_TO_APP = {
@@ -211,6 +211,13 @@ def build_database(reference, coach):
         key = str(rotation)
         zones = coach["firstSetZones"][key]
         positions = {player: dict(COACH_PLAY_ZONES[zone]) for player, zone in zones.items()}
+        # Back-row players keep their reception sectors while we prepare the
+        # first set. Role-specific defense zones apply after our attack.
+        for slot in ("1", "5", "6"):
+            player = coach_base[key][slot]
+            if player != "S":
+                x, y = coach["receiveAtContact"][key][player]
+                positions[player] = {"x": x, "y": y}
         # The setter's temporary setting destination matches the existing
         # checked full-rally anchor. Defensive zone 1 is a later moment.
         positions["S"] = dict(scenarios["open-smart-special"]["theirs"]["trial"][key]["steps"][3]["positions"]["S"])

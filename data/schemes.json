@@ -146,8 +146,8 @@
       "zones": {
         "S": "2-3",
         "OH1": "2",
-        "OH2": "6",
-        "MB1": "5",
+        "OH2": "5",
+        "MB1": "6",
         "MB2": "3",
         "OP": "4"
       },
@@ -161,12 +161,12 @@
           "y": 20
         },
         "OH2": {
-          "x": 50,
-          "y": 75
+          "x": 19,
+          "y": 60
         },
         "MB1": {
-          "x": 18,
-          "y": 75
+          "x": 50,
+          "y": 60
         },
         "MB2": {
           "x": 50,
@@ -181,9 +181,9 @@
     "6": {
       "zones": {
         "S": "2-3",
-        "OH1": "6",
+        "OH1": "1",
         "OH2": "4",
-        "MB1": "5",
+        "MB1": "6",
         "MB2": "3",
         "OP": "2"
       },
@@ -193,16 +193,16 @@
           "y": 8.33
         },
         "OH1": {
-          "x": 50,
-          "y": 75
+          "x": 86,
+          "y": 55
         },
         "OH2": {
           "x": 18,
           "y": 20
         },
         "MB1": {
-          "x": 18,
-          "y": 75
+          "x": 50,
+          "y": 57
         },
         "MB2": {
           "x": 50,
@@ -220,7 +220,7 @@
         "OH1": "6",
         "OH2": "4",
         "MB1": "3",
-        "MB2": "5",
+        "MB2": "1",
         "OP": "2"
       },
       "positions": {
@@ -229,8 +229,8 @@
           "y": 10.41
         },
         "OH1": {
-          "x": 50,
-          "y": 75
+          "x": 53,
+          "y": 70
         },
         "OH2": {
           "x": 18,
@@ -241,8 +241,8 @@
           "y": 20
         },
         "MB2": {
-          "x": 18,
-          "y": 75
+          "x": 83,
+          "y": 70
         },
         "OP": {
           "x": 82,
@@ -256,7 +256,7 @@
         "OH1": "6",
         "OH2": "4",
         "MB1": "3",
-        "MB2": "5",
+        "MB2": "1",
         "OP": "1"
       },
       "positions": {
@@ -265,8 +265,8 @@
           "y": 7.8
         },
         "OH1": {
-          "x": 50,
-          "y": 75
+          "x": 51,
+          "y": 64
         },
         "OH2": {
           "x": 18,
@@ -277,12 +277,12 @@
           "y": 20
         },
         "MB2": {
-          "x": 18,
-          "y": 75
+          "x": 84,
+          "y": 64
         },
         "OP": {
-          "x": 82,
-          "y": 75
+          "x": 88,
+          "y": 82
         }
       }
     },
@@ -290,9 +290,9 @@
       "zones": {
         "S": "2-3",
         "OH1": "4",
-        "OH2": "6",
+        "OH2": "1",
         "MB1": "3",
-        "MB2": "5",
+        "MB2": "6",
         "OP": "1"
       },
       "positions": {
@@ -305,20 +305,20 @@
           "y": 20
         },
         "OH2": {
-          "x": 50,
-          "y": 75
+          "x": 82,
+          "y": 57
         },
         "MB1": {
           "x": 50,
           "y": 20
         },
         "MB2": {
-          "x": 18,
-          "y": 75
+          "x": 51,
+          "y": 60
         },
         "OP": {
-          "x": 82,
-          "y": 75
+          "x": 71,
+          "y": 87
         }
       }
     },
@@ -327,9 +327,9 @@
         "S": "2-3",
         "OH1": "4",
         "OH2": "6",
-        "MB1": "5",
+        "MB1": "1",
         "MB2": "3",
-        "OP": "1"
+        "OP": "6"
       },
       "positions": {
         "S": {
@@ -341,20 +341,20 @@
           "y": 20
         },
         "OH2": {
-          "x": 50,
-          "y": 75
+          "x": 52,
+          "y": 65
         },
         "MB1": {
-          "x": 18,
-          "y": 75
+          "x": 82,
+          "y": 65
         },
         "MB2": {
           "x": 50,
           "y": 20
         },
         "OP": {
-          "x": 82,
-          "y": 75
+          "x": 40,
+          "y": 90
         }
       }
     }
@@ -364,7 +364,7 @@
     "date": "2015-03-14",
     "sourcePdfSha256": "40c49f169f65788ee71e43dc7dfb2eacb422900243e864b985adf25bacfc7bf9",
     "transcription": "references/coach-open-smart-special/receive.json",
-    "firstSetNote": "Reception positions are transcribed from the six PDF diagrams. For the first set, the setter moves to the zone 2-3 setting area even when starting in the back row; this temporary movement uses the existing full-rally setting anchor and is illustrative except for the PDF's explicit P1 instruction to leave after the serve. The other playing zones follow the PDF's written role instructions; marker centers and route arrows are illustrative. Passers complete their reception before moving. P1 retains the opposite/outside exception. P2 has no zone-2 attacker. A back-row setter's zone-1 defense assignment applies later, after our attack."
+    "firstSetNote": "Reception positions are transcribed from the six PDF diagrams. For the first set, the setter moves to the zone 2-3 setting area even when starting in the back row; this temporary movement uses the existing full-rally setting anchor and is illustrative except for the PDF's explicit P1 instruction to leave after the serve. Other back-row players stay in their PDF reception sectors through the first set; the written middle-to-5 and outside-to-6 assignments describe later defense and do not require a first-set swap. Front-row hitters may move toward their playing areas after the first touch; exact centers and route arrows are illustrative. P1 retains the opposite/outside exception and OH1 is a front-row player despite receiving behind the attack line. P2 has no zone-2 attacker."
   },
   "rotationOrder": [
     1,

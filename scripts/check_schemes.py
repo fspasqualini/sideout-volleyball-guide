@@ -112,6 +112,11 @@ def main():
                 f"coach P{rotation}: first-set zones differ from checked transcription")
         require(set(zones) == set(slots.values()), f"coach P{rotation}: missing destination")
         expected_points = {player: COACH_PLAY_ZONES[zone] for player, zone in zones.items()}
+        for slot in ("1", "5", "6"):
+            player = slots[slot]
+            if player != "S":
+                x, y = coach["receiveAtContact"][str(rotation)][player]
+                expected_points[player] = {"x": x, "y": y}
         expected_points["S"] = data["scenarios"]["open-smart-special"]["theirs"]["trial"][str(rotation)]["steps"][3]["positions"]["S"]
         require(destinations["positions"] == expected_points,
                 f"coach P{rotation}: first-set markers differ from declared zones and setting anchor")
@@ -122,7 +127,8 @@ def main():
             if player == "S":
                 expected_zone = "2-3"
             elif slot in (1, 5, 6):
-                expected_zone = "5" if player.startswith("MB") else "6" if player.startswith("OH") else "1"
+                x = coach["receiveAtContact"][str(rotation)][player][0]
+                expected_zone = "5" if x < 34 else "6" if x < 67 else "1"
             elif player.startswith("MB"):
                 expected_zone = "3"
             elif rotation == 1 and player == "OP":
@@ -135,6 +141,15 @@ def main():
                     f"coach P{rotation}: {player} assigned {zone}, expected {expected_zone}")
         if rotation == 2:
             require("2" not in zones.values(), "coach P2: no zone-2 attacker in the PDF")
+        if rotation == 1:
+            require(position_of(slots, "OH1") == 2 and position_of(slots, "MB1") == 6
+                    and position_of(slots, "OH2") == 5,
+                    "coach P1: front-row Outside 1 or back-row reception identities changed")
+            require(all(destinations["positions"][player] == {
+                "x": coach["receiveAtContact"]["1"][player][0],
+                "y": coach["receiveAtContact"]["1"][player][1],
+            } for player in ("MB1", "OH2")),
+                    "coach P1: back-row passers must not swap before our first set")
 
     scenarios_checked = 0
     steps_checked = 0

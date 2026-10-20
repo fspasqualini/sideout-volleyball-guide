@@ -240,8 +240,8 @@ function renderSmart101() {
   ].map(([stage, label]) => `<button type="button" data-study-stage="${stage}" class="${studyStage === stage ? "active" : ""}" aria-pressed="${studyStage === stage}">${label}</button>`).join("");
   $("smart101-stage-note").textContent = after
     ? copy(
-      `The setter moves toward zones 2–3 to take the second touch, even from the back row. Passers finish the first touch before leaving their lanes.${studyRotation === 1 ? " In P1, Outside 1 attacks from zone 2 and the opposite stays in 4." : ""} Arrows show directions, not exact paths.`,
-      `Il palleggiatore va fra le zone 2 e 3 per il secondo tocco, anche se parte dalla seconda linea. I ricevitori completano il primo tocco prima di lasciare la corsia.${studyRotation === 1 ? " In P1, Banda 1 attacca da zona 2 e l'Opposto resta in 4." : ""} Le frecce indicano la direzione, non il percorso esatto.`,
+      `The setter heads toward zones 2–3 for the second touch. Other back-row players keep their starting sectors through this first set.${studyRotation === 1 ? " In P1, Outside 1 is front row (rotation zone 2) despite receiving deep; Middle 1 and Outside 2 do not swap." : ""} Defensive home zones matter after our attack.`,
+      `Il palleggiatore va fra le zone 2 e 3 per il secondo tocco. Gli altri giocatori di seconda linea restano nel settore iniziale durante questa prima alzata.${studyRotation === 1 ? " In P1, Banda 1 è di prima linea (rotazione 2) anche se riceve arretrata; C1 e B2 non si scambiano." : ""} Le zone difensive si usano dopo il nostro attacco.`,
     )
     : copy("Our positions before the opposing server starts the serve action, as drawn in the coach's six reception diagrams.", "Le nostre posizioni prima che il battitore avversario inizi l'azione di battuta, come nei sei disegni del coach.");
   $("smart101-net").textContent = copy("NET · FACE THIS WAY ↑", "RETE · GUARDA IN QUESTA DIREZIONE ↑");
@@ -256,7 +256,7 @@ function renderSmart101() {
     return `<button type="button" data-study-player="${id}" class="smart101-player ${passers.includes(id) ? "passer" : ""} ${studyPlayer === id ? "selected" : ""}" style="left:${point.x}%;top:${point.y}%" aria-label="${name}, ${copy(after ? "playing zone" : "rotation zone", after ? "zona di gioco" : "zona di rotazione")} ${zone}${passers.includes(id) ? copy(", regular passer", ", ricevitore abituale") : ""}" aria-pressed="${studyPlayer === id}"><b>${markerLabel(id)}</b><small>${zone}</small></button>`;
   }).join("");
   $("smart101-court-key").textContent = after
-    ? copy("Hollow dots mark reception starts; arrows point to first-set positions. Small numbers are destination zones. Blue marks regular passers; red marks your player.", "I cerchietti vuoti segnano la partenza in ricezione; le frecce indicano dove disporsi per la prima alzata. I numeri piccoli sono le zone di arrivo. Il blu indica i ricevitori; il rosso il tuo giocatore.")
+    ? copy("Hollow dots mark reception starts; arrows show moves toward the first set. Players without arrows stay in their reception sectors. Small numbers show current playing sectors, not rotation status. Blue marks passers; red marks your player.", "I cerchietti vuoti segnano la partenza in ricezione; le frecce mostrano gli spostamenti per la prima alzata. Chi non ha freccia resta nel suo settore di ricezione. I numeri piccoli indicano i settori attuali, non la posizione di rotazione. Il blu indica i ricevitori; il rosso il tuo giocatore.")
     : copy("The small number is the rotation zone. The three blue markers are the regular passers; the red ring marks your player.", "Il numero piccolo è la zona di rotazione. I tre pallini blu sono i ricevitori abituali; il bordo rosso indica il tuo giocatore.");
   $("smart101-role-heading").textContent = copy("Find your player", "Trova il tuo giocatore");
   $("smart101-role-options").setAttribute("aria-label", copy("Choose a player", "Scegli un giocatore"));
@@ -271,8 +271,13 @@ function renderSmart101() {
       ? copy("You stay out of the regular passing line; cover an exceptionally short serve if needed.", "Resti fuori dalla linea di ricezione abituale; aiuti su una battuta cortissima se serve.")
       : copy("You are outside the regular passing line in this turn.", "In questo turno sei fuori dalla linea di ricezione abituale.");
   const destinationZone = destinations.zones[studyPlayer];
+  const backRowStays = studyPlayer !== "S" && [1, 5, 6].includes(zone);
   const firstSetJob = studyPlayer === "S"
     ? copy("Move toward the setting area as the serve travels; arrive for the second touch. A back-row setter may set here but remains a back-row player.", "Vai verso la zona di alzata mentre viaggia la battuta; arriva per il secondo tocco. Anche se alzi vicino alla rete, resti giocatore di seconda linea quando parti da dietro.")
+    : backRowStays
+      ? copy("Stay in your starting sector for the first set. The coach's role-specific defensive zone applies after our attack, when the opponents can return the ball.", "Resta nel tuo settore iniziale per la prima alzata. La zona difensiva assegnata dal coach al tuo ruolo serve dopo il nostro attacco, quando gli avversari possono rimandare la palla.")
+      : studyRotation === 1 && studyPlayer === "OH1"
+        ? copy("You are a front-row player in rotation zone 2 even though you receive deep. After the first touch, approach the zone-2 attack. If you receive the serve, finish your pass first.", "Sei di prima linea in rotazione 2 anche se ricevi arretrata. Dopo il primo tocco puoi preparare l'attacco da zona 2; se ricevi tu, completa prima il passaggio.")
     : passers.includes(studyPlayer)
       ? copy("Cover your reception lane and complete the first touch before moving toward this playing zone.", "Copri la tua corsia e completa il primo tocco prima di muoverti verso questa zona di gioco.")
       : copy("Leave the passing lane clear and move toward this playing zone as the first touch develops.", "Lascia libera la corsia di ricezione e vai verso questa zona di gioco mentre si sviluppa il primo tocco.");
@@ -288,8 +293,8 @@ function renderSmart101() {
     "Italia 2026/27: rispetta i rapporti di rotazione mostrati fino al primo movimento del battitore legato alla battuta. Da quel momento puoi spostarti, ma resti giocatore di prima o seconda linea.",
   );
   $("smart101-source").innerHTML = copy(
-    "Before the serve: Sporting Club 2000 U16 reception diagrams (2015), transcribed and checked. First set: the PDF's written role zones and the full-rally setting anchor; the arrows and precise destinations are illustrative. The back-row setter's zone-1 defense is a later phase. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
-    "Prima della battuta: schemi di ricezione Sporting Club 2000 U16 (2015), trascritti e verificati. Prima alzata: zone descritte nel testo del PDF e punto di alzata dell'animazione completa; frecce e coordinate precise sono indicative. La zona 1 difensiva del palleggiatore di seconda linea riguarda una fase successiva. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
+    "The <a href=\"https://www.sportegioco.it/index.php/schemi-di-ricezione-difesa-e-battuta/under-16-schemi-di-ricezione-a-tre-nella-pallavolo\" target=\"_blank\" rel=\"noopener noreferrer\">original Sporting Club 2000 U16 page ↗</a> explains the single-setter, three-passer idea and links to the reception PDF. The before-serve markers are transcribed from its diagrams. The first-set arrows and front-row destinations are illustrative; other back-row players stay in their starting sectors. The PDF's middle-to-5 and outside-to-6 instructions describe later defense, not a required swap during reception. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
+    "La <a href=\"https://www.sportegioco.it/index.php/schemi-di-ricezione-difesa-e-battuta/under-16-schemi-di-ricezione-a-tre-nella-pallavolo\" target=\"_blank\" rel=\"noopener noreferrer\">pagina originale dello Sporting Club 2000 U16 ↗</a> spiega l'idea di palleggiatore unico e tre ricevitori e collega il PDF. Le posizioni prima della battuta sono trascritte dai disegni. Frecce e arrivi dei giocatori di prima linea per l'alzata sono indicativi; gli altri giocatori di seconda linea restano nel settore iniziale. La regola scritta «centrale in 5, banda in 6» riguarda la difesa successiva, non uno scambio obbligato durante la ricezione. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
   );
 }
 
@@ -1403,7 +1408,7 @@ mobileNavigation.addEventListener("change", (event) => {
   if (!event.matches) $("player-navigation").open = true;
 });
 
-fetch("./data/schemes.json?v=7")
+fetch("./data/schemes.json?v=8")
   .then((response) => {
     if (!response.ok) throw new Error(`Court database returned ${response.status}`);
     return response.json();

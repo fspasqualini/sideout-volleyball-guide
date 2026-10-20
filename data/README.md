@@ -12,13 +12,16 @@ The Open Smart One on One view has two static moments for each of the six
 rotations. The first uses the PDF's plotted reception positions before the
 opponent's serve. The second shows where all six prepare for the first set.
 The setter moves between zones 2 and 3 for the second touch even when starting
-in the back row; its point matches the full-rally setting anchor. The other
-players follow the PDF's written role assignments: back-row middles to zone 5,
-back-row outsides to zone 6, back-row opposite to zone 1, front-row middles to
-zone 3, and front-row outsides/opposite to zones 4/2, with the P1 exception
-recorded in `receive.json`. A back-row setter's zone-1 defense applies later,
-after our attack. The arrows and exact centers in the second view are
-illustrative; receivers complete their pass before leaving the passing lane.
+in the back row; its point matches the full-rally setting anchor. Other
+back-row players hold their PDF reception sectors through this first set.
+Front-row hitters prepare to attack from their role areas, with the P1
+opposite/outside exception recorded in `receive.json`. P1 Outside 1 is a
+front-row player in rotation zone 2 even though its reception marker is deep.
+The PDF's written assignments of back-row middles to zone 5, back-row outsides
+to zone 6, and back-row setter/opposite to zone 1 apply to later defense after
+our attack. They do not require two passers to swap during reception. The
+arrows and exact centers in the second view are illustrative; receivers
+complete their pass before leaving the passing lane.
 
 Coverage is explicit:
 
@@ -62,9 +65,9 @@ moments, not new coaching diagrams.
 `scripts/build_schemes.py` generates the database from the pinned source JSON
 and `references/coach-open-smart-special/receive.json`. The latter contains
 approximate coordinates manually read from all six coach diagrams and their
-three passers. Its structured `firstSetZones` combine the PDF's written role
-assignments with the temporary setting destination and are checked for
-rotation identity and front/back status.
+three passers. Its structured `firstSetZones` distinguish held back-row
+reception sectors from front-row attack areas and the temporary setting
+destination. They are checked for rotation identity and front/back status.
 Its PDF SHA-256 is recorded there. The original coach PDF is
 not published in this repository. For Open smart special, the serve-contact
 and serve-receive positions come from the coach diagrams; later attack and
