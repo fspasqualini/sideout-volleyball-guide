@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from build_schemes import COURT_SPOTS, NEXT_POSITION, RALLY_PHASES, ROTATION_ORDER, ROOT, source_slots
+from build_schemes import COACH_PLAY_ZONES, COURT_SPOTS, NEXT_POSITION, RALLY_PHASES, ROTATION_ORDER, ROOT, source_slots
 
 
 def require(condition, message):
@@ -106,6 +106,32 @@ def main():
         require(set(passers) == {"OH1", "OH2", next(player for player in ("MB1", "MB2")
                                                       if player in (slots["5"], slots["6"], slots["1"]))},
                 f"coach P{rotation} must use both outsides and the back-row middle")
+        destinations = data["coachPostReception"][str(rotation)]
+        zones = destinations["zones"]
+        require(zones == coach["postReceptionZones"][str(rotation)],
+                f"coach P{rotation}: playing zones differ from checked transcription")
+        require(set(zones) == set(slots.values()), f"coach P{rotation}: missing destination")
+        require(destinations["positions"] == {player: COACH_PLAY_ZONES[zone]
+                                                for player, zone in zones.items()},
+                f"coach P{rotation}: destination markers differ from declared zones")
+        for player, zone in zones.items():
+            slot = position_of(slots, player)
+            if slot in (1, 5, 6):
+                expected_zone = "5" if player.startswith("MB") else "6" if player.startswith("OH") else "1"
+            elif player == "S":
+                expected_zone = "2-3"
+            elif player.startswith("MB"):
+                expected_zone = "3"
+            elif rotation == 1 and player == "OP":
+                expected_zone = "4"
+            elif rotation == 1 and player == "OH1":
+                expected_zone = "2"
+            else:
+                expected_zone = "2" if player == "OP" else "4"
+            require(zone == expected_zone,
+                    f"coach P{rotation}: {player} assigned {zone}, expected {expected_zone}")
+        if rotation == 2:
+            require("2" not in zones.values(), "coach P2: no zone-2 attacker in the PDF")
 
     scenarios_checked = 0
     steps_checked = 0

@@ -166,6 +166,7 @@ const studyRoleByPlayer = {
 };
 let studyRotation = valid(Number(params.get("studyRotation")), studyRotations, 1);
 let studyPlayer = valid(params.get("studyPlayer"), studyPlayers, "S");
+let studyStage = valid(params.get("studyStage"), ["before", "after"], "before");
 const studyChecks = {
   1: [
     ["P stays behind B1 until the server starts the service action.", "P resta dietro B1 fino all'inizio dell'azione di battuta."],
@@ -200,6 +201,9 @@ function renderSmart101() {
   const slotOf = Object.fromEntries(Object.entries(bySlot).map(([slot, id]) => [id, Number(slot)]));
   const passers = schemeDatabase.coachPassers[String(studyRotation)];
   const atReceive = scenario.steps[1].positions;
+  const destinations = schemeDatabase.coachPostReception[String(studyRotation)];
+  const after = studyStage === "after";
+  const shownPositions = after ? destinations.positions : atReceive;
   $("smart101-kicker").textContent = copy("OPEN SMART ONE ON ONE · SERVE RECEPTION", "OPEN SMART ONE ON ONE · RICEZIONE DELLA BATTUTA");
   $("smart101-title").textContent = copy("One team. Six rotations. Three passers.", "Una squadra. Sei rotazioni. Tre ricevitori.");
   $("smart101-intro").textContent = copy(
@@ -210,18 +214,27 @@ function renderSmart101() {
   $("smart101-rotation").innerHTML = studyRotations.map((rotation, index) =>
     `<button type="button" data-study-rotation="${rotation}" class="${studyRotation === rotation ? "active" : ""}" aria-pressed="${studyRotation === rotation}"><strong>P${rotation}</strong><span>${copy("Setter in zone", "Palleggiatore in zona")} ${rotation}</span><small>${copy("Turn", "Turno")} ${index + 1}/6</small></button>`
   ).join("");
+  $("smart101-stage").setAttribute("aria-label", copy("Choose positioning moment", "Scegli il momento della disposizione"));
+  $("smart101-stage").innerHTML = [
+    ["before", copy("1 · Before the serve", "1 · Prima della battuta")],
+    ["after", copy("2 · After reception", "2 · Dopo la ricezione")],
+  ].map(([stage, label]) => `<button type="button" data-study-stage="${stage}" class="${studyStage === stage ? "active" : ""}" aria-pressed="${studyStage === stage}">${label}</button>`).join("");
+  $("smart101-stage-note").textContent = after
+    ? copy("Where each player goes after the first pass. The three passers first finish their reception; these markers show playing zones, not required paths or timing.", "Dove va ciascuno dopo il primo passaggio. I tre ricevitori completano prima la ricezione; i pallini indicano zone di gioco, non percorsi o tempi obbligati.")
+    : copy("Our positions before the opposing server starts the serve action, as drawn in the coach's six reception diagrams.", "Le nostre posizioni prima che il battitore avversario inizi l'azione di battuta, come nei sei disegni del coach.");
   $("smart101-net").textContent = copy("NET · FACE THIS WAY ↑", "RETE · GUARDA IN QUESTA DIREZIONE ↑");
-  $("smart101-court").setAttribute("aria-label", copy("Our six players in serve reception", "I nostri sei giocatori in ricezione"));
+  $("smart101-court").setAttribute("aria-label", after
+    ? copy("Our six players in their playing zones after reception", "I nostri sei giocatori nelle zone di gioco dopo la ricezione")
+    : copy("Our six players in serve reception", "I nostri sei giocatori in ricezione"));
   $("smart101-players").innerHTML = studyPlayers.map((id) => {
-    const point = atReceive[id];
-    const zone = slotOf[id];
+    const point = shownPositions[id];
+    const zone = after ? destinations.zones[id] : slotOf[id];
     const name = playerName(id);
-    return `<button type="button" data-study-player="${id}" class="smart101-player ${passers.includes(id) ? "passer" : ""} ${studyPlayer === id ? "selected" : ""}" style="left:${point.x}%;top:${point.y}%" aria-label="${name}, ${copy("rotation zone", "zona di rotazione")} ${zone}${passers.includes(id) ? copy(", passer", ", ricevitore") : ""}" aria-pressed="${studyPlayer === id}"><b>${markerLabel(id)}</b><small>${zone}</small></button>`;
+    return `<button type="button" data-study-player="${id}" class="smart101-player ${passers.includes(id) ? "passer" : ""} ${studyPlayer === id ? "selected" : ""}" style="left:${point.x}%;top:${point.y}%" aria-label="${name}, ${copy(after ? "playing zone" : "rotation zone", after ? "zona di gioco" : "zona di rotazione")} ${zone}${passers.includes(id) ? copy(", regular passer", ", ricevitore abituale") : ""}" aria-pressed="${studyPlayer === id}"><b>${markerLabel(id)}</b><small>${zone}</small></button>`;
   }).join("");
-  $("smart101-court-key").textContent = copy(
-    "The small number is the rotation zone. The three blue markers are the regular passers; the red ring marks your player.",
-    "Il numero piccolo è la zona di rotazione. I tre pallini blu sono i ricevitori abituali; il bordo rosso indica il tuo giocatore.",
-  );
+  $("smart101-court-key").textContent = after
+    ? copy("The small number is the destination playing zone. Blue marks the regular passers; red marks your player.", "Il numero piccolo è la zona di gioco di arrivo. Il blu indica i ricevitori abituali; il rosso il tuo giocatore.")
+    : copy("The small number is the rotation zone. The three blue markers are the regular passers; the red ring marks your player.", "Il numero piccolo è la zona di rotazione. I tre pallini blu sono i ricevitori abituali; il bordo rosso indica il tuo giocatore.");
   $("smart101-role-heading").textContent = copy("Find your player", "Trova il tuo giocatore");
   $("smart101-role-options").setAttribute("aria-label", copy("Choose a player", "Scegli un giocatore"));
   $("smart101-role-options").innerHTML = studyPlayers.map((id) =>
@@ -234,8 +247,12 @@ function renderSmart101() {
     : studyPlayer === "OP"
       ? copy("You stay out of the regular passing line; cover an exceptionally short serve if needed.", "Resti fuori dalla linea di ricezione abituale; aiuti su una battuta cortissima se serve.")
       : copy("You are outside the regular passing line in this turn.", "In questo turno sei fuori dalla linea di ricezione abituale.");
-  $("smart101-role-note").innerHTML = `<strong>${playerName(studyPlayer)} · ${copy("zone", "zona")} ${zone} · ${row}</strong><p>${selectedJob}</p>`;
+  const destinationZone = destinations.zones[studyPlayer];
+  $("smart101-role-note").innerHTML = after
+    ? `<strong>${playerName(studyPlayer)} · ${copy("rotation", "rotazione")} ${zone} → ${copy("playing zone", "zona di gioco")} ${destinationZone} · ${row}</strong><p>${copy("Reach this zone after your reception duty, keeping your front/back-row status for this point.", "Raggiungi questa zona dopo il tuo eventuale compito in ricezione; resti di prima o seconda linea per questo punto.")}</p>`
+    : `<strong>${playerName(studyPlayer)} · ${copy("rotation zone", "zona di rotazione")} ${zone} · ${row}</strong><p>${selectedJob}</p>`;
   $("smart101-passers").innerHTML = `<strong>${copy("The three passers in P", "I tre ricevitori in P")}${studyRotation}</strong><p>${passers.map(playerName).join(" · ")}</p>`;
+  $("smart101-checks").hidden = after;
   $("smart101-checks-heading").textContent = copy("Check your spacing", "Controlla le distanze");
   $("smart101-checks-list").innerHTML = studyChecks[studyRotation].map(([en, it]) => `<li>${copy(en, it)}</li>`).join("");
   $("smart101-rule").textContent = copy(
@@ -243,8 +260,8 @@ function renderSmart101() {
     "Italia 2026/27: rispetta i rapporti di rotazione mostrati fino al primo movimento del battitore legato alla battuta. Da quel momento puoi spostarti, ma resti giocatore di prima o seconda linea.",
   );
   $("smart101-source").innerHTML = copy(
-    "Positions and spacing: Sporting Club 2000 U16 reception diagrams (2015), transcribed and checked. The PDF only documents reception; this view shows no attack or defense paths. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
-    "Posizioni e rapporti: schemi di ricezione Sporting Club 2000 U16 (2015), trascritti e verificati. Il PDF documenta solo la ricezione; qui non sono mostrati percorsi di attacco o difesa. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
+    "Before the serve: Sporting Club 2000 U16 reception diagrams (2015), transcribed and checked. After reception: playing zones inferred from the PDF's written role rules; marker centers are illustrative. No attack or defense paths are shown. The third panel's ‘zone 1 · P5’ heading is a typo: its drawing is P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Current FIPAV rules ↗</a>",
+    "Prima della battuta: schemi di ricezione Sporting Club 2000 U16 (2015), trascritti e verificati. Dopo la ricezione: zone di gioco ricavate dalle regole scritte nel PDF; i centri dei pallini sono indicativi. Non sono mostrati percorsi di attacco o difesa. Nel terzo riquadro «zona 1 · P5» è un refuso: il disegno è P5. <a href=\"https://www.federvolley.it/documenti-UG\" target=\"_blank\" rel=\"noopener noreferrer\">Regole FIPAV aggiornate ↗</a>",
   );
 }
 
@@ -1086,6 +1103,7 @@ function render() {
   );
   url.searchParams.set("studyRotation", studyRotation);
   url.searchParams.set("studyPlayer", studyPlayer);
+  url.searchParams.set("studyStage", studyStage);
   history.replaceState(null, "", url);
 }
 
@@ -1199,6 +1217,12 @@ document.addEventListener("click", (event) => {
   if (button.dataset.studyPlayer) {
     studyPlayer = button.dataset.studyPlayer;
     render();
+    return;
+  }
+  if (button.dataset.studyStage) {
+    studyStage = button.dataset.studyStage;
+    render();
+    document.querySelector(`[data-study-stage="${studyStage}"]`).focus();
     return;
   }
   if (button.dataset.view) {
@@ -1351,7 +1375,7 @@ mobileNavigation.addEventListener("change", (event) => {
   if (!event.matches) $("player-navigation").open = true;
 });
 
-fetch("./data/schemes.json?v=5")
+fetch("./data/schemes.json?v=6")
   .then((response) => {
     if (!response.ok) throw new Error(`Court database returned ${response.status}`);
     return response.json();

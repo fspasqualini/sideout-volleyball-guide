@@ -19,6 +19,15 @@
     "3": ["OH1", "OH2", "MB2"],
     "2": ["OH1", "OH2", "MB1"]
   },
+  "postReceptionZones": {
+    "1": {"S": "1", "OH1": "2", "OH2": "6", "MB1": "5", "MB2": "3", "OP": "4"},
+    "6": {"S": "1", "OH1": "6", "OH2": "4", "MB1": "5", "MB2": "3", "OP": "2"},
+    "5": {"S": "1", "OH1": "6", "OH2": "4", "MB1": "3", "MB2": "5", "OP": "2"},
+    "4": {"S": "2-3", "OH1": "6", "OH2": "4", "MB1": "3", "MB2": "5", "OP": "1"},
+    "3": {"S": "2-3", "OH1": "4", "OH2": "6", "MB1": "3", "MB2": "5", "OP": "1"},
+    "2": {"S": "2-3", "OH1": "4", "OH2": "6", "MB1": "5", "MB2": "3", "OP": "1"}
+  },
+  "postReceptionNote": "Playing zones inferred from the PDF's written role instructions, not plotted destinations in its six reception diagrams. The marker centers are illustrative; passers complete their reception before moving to these zones. P1 retains the coach's opposite/outside exception. P2 has no zone-2 attacker.",
   "coachingRules": [
     "The opposite never joins the three-player serve-receive line.",
     "At P1, the opposite attacks from zone 4 and Outside 1 from zone 2; they do not swap.",

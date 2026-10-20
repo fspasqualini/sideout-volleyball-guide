@@ -8,6 +8,16 @@ outsides and the back-row middle receive; the opposite covers very short serves
 only.
 These are coaching examples, not every possible 5–1 arrangement.
 
+The Open Smart One on One view has two static moments for each of the six
+rotations. The first uses the PDF's plotted reception positions before the
+opponent's serve. The second uses the PDF's written role assignments for
+playing zones after the first pass: back-row middles to zone 5, back-row
+outsides to zone 6, back-row setter/opposite to zone 1, front-row middles to
+zone 3, and front-row outsides/opposite to zones 4/2, with the P1 exception
+recorded in `receive.json`. A front-row setter moves between zones 2 and 3.
+The zone centers in the second view are illustrative. They do not prescribe
+an immediate move at service contact or a path that would abandon a pass.
+
 Coverage is explicit:
 
 | Dimension | Values |
@@ -50,7 +60,9 @@ moments, not new coaching diagrams.
 `scripts/build_schemes.py` generates the database from the pinned source JSON
 and `references/coach-open-smart-special/receive.json`. The latter contains
 approximate coordinates manually read from all six coach diagrams and their
-three passers. Its PDF SHA-256 is recorded there. The original coach PDF is
+three passers. Its structured `postReceptionZones` transcribe the PDF's written
+role assignments and are checked for rotation identity and front/back status.
+Its PDF SHA-256 is recorded there. The original coach PDF is
 not published in this repository. For Open smart special, the serve-contact
 and serve-receive positions come from the coach diagrams; later attack and
 defense positions adapt the published rotazionivolley coordinates to the
