@@ -2,6 +2,8 @@
 
 A small, Italian-language viewer for the six rotations and five receive-side phases of the built-in **ricezione-a-3** scheme in [napo/rotazionivolley](https://github.com/napo/rotazionivolley). The three receivers are S1, S2 and L1. The scheme's player coordinates and libero substitutions are read directly from its JSON file; this prototype does not add coaching positions or other formations.
 
+![Phone preview showing P1 during reception](preview/mobile.png)
+
 ## Try it
 
 ```bash
