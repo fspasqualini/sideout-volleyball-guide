@@ -119,11 +119,9 @@ h2 { font-size: 26px; margin-top: 4px; }
   .viewer { display: flex; flex-direction: column; padding: 15px 14px; border-radius: 20px; }
   .viewer-heading { margin-bottom: 14px; }
   h2 { font-size: 22px; }
-  .phase-dock { order: 4; margin-top: 12px; }
+  .phase-dock { margin-top: 12px; }
   .phase-heading { margin-bottom: 7px; }
   .phase-heading h3 { display: none; }
-  .court-panel { order: 5; }
-  .detail-row { order: 6; }
   .court-panel { margin-top: 13px; }
   .footer { padding: 0 20px 25px; }
 }

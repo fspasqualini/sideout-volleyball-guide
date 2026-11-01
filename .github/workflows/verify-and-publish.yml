@@ -1,0 +1,46 @@
+name: Verify reception prototype and publish
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pinned scheme, rotations, and competence areas
+        run: python3 scripts/check_prototype.py
+      - name: Check browser JavaScript syntax
+        run: node --check app.js
+      - name: Check static entry points
+        run: test -f index.html && test -f styles.css && test -f favicon.svg && test -f LICENSE
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare static site
+        run: |
+          mkdir -p _site/references/rotazionivolley
+          cp index.html styles.css app.js favicon.svg LICENSE .nojekyll _site/
+          cp references/rotazionivolley/ricezione-a-3.json references/rotazionivolley/NOTICE.md references/rotazionivolley/LICENSE-APACHE-2.0 _site/references/rotazionivolley/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

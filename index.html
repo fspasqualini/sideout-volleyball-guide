@@ -31,9 +31,10 @@
           <div class="viewer-heading"><div><p class="section-label">La tua squadra · riceve</p><h2 id="viewer-title">Campo di gioco</h2></div><span class="viewer-badge">5–1 · 3 ricevitori</span></div>
           <div class="rotation-area"><div class="control-heading"><span>Posizione del palleggiatore</span><span id="rotation-count">1 / 6</span></div><div class="rotation-rail" id="rotation-rail" role="group" aria-label="Scegli la posizione del palleggiatore"></div></div>
           <div class="focus-toolbar">
-            <label class="role-picker" for="role-select"><span>Focus sul ruolo</span><select id="role-select"><option value="middle">Centrale</option><option value="setter">Palleggiatore</option><option value="hitter">Schiacciatore</option><option value="opposite">Opposto</option><option value="libero">Libero</option></select></label>
-            <div class="overlay-buttons" role="group" aria-label="Sovrapposizioni sul campo"><button type="button" id="areas-toggle" aria-pressed="false" aria-label="Mostra le aree di competenza del ruolo nella fase Ricezione">Aree</button><button type="button" id="faults-toggle" aria-pressed="false" aria-label="Mostra i falli di posizione del ruolo nella fase Ricezione">Falli</button></div>
+            <label class="role-picker" for="role-select"><span>Focus sul ruolo</span><select id="role-select" disabled><option value="middle">Centrale</option><option value="setter">Palleggiatore</option><option value="hitter">Schiacciatore</option><option value="opposite">Opposto</option><option value="libero">Libero</option></select></label>
+            <div class="overlay-buttons" role="group" aria-label="Sovrapposizioni sul campo"><button type="button" id="areas-toggle" aria-pressed="false" aria-label="Mostra le aree di competenza del ruolo nella fase Ricezione" disabled>Aree</button><button type="button" id="faults-toggle" aria-pressed="false" aria-label="Mostra i falli di posizione del ruolo nella fase Ricezione" disabled>Falli</button></div>
           </div>
+          <div class="phase-dock" aria-label="Sequenza delle azioni"><div class="phase-heading"><div><span class="section-label">Sequenza</span><h3 id="phase-title">Base</h3></div><span id="phase-count">1 di 5</span></div><div class="phase-rail" id="phase-rail" role="group" aria-label="Scegli una fase"></div><p class="phase-hint" id="phase-hint">Tocca una fase o scorri sul campo per avanzare.</p></div>
           <div class="court-panel">
             <div class="court-topline"><span>RETE <span aria-hidden="true">↑</span></span><span id="phase-overline">01 / 05 · BASE</span></div>
             <div class="court-wrap"><div class="court" id="court" role="group" aria-label="Campo della tua squadra">
@@ -42,7 +43,6 @@
             </div></div>
             <div class="court-bottomline"><span>FONDO CAMPO</span><span>↑ VERSO LA RETE</span></div>
           </div>
-          <div class="phase-dock" aria-label="Sequenza delle azioni"><div class="phase-heading"><div><span class="section-label">Sequenza</span><h3 id="phase-title">Base</h3></div><span id="phase-count">1 di 5</span></div><div class="phase-rail" id="phase-rail" role="group" aria-label="Scegli una fase"></div><p class="phase-hint" id="phase-hint">Tocca una fase o scorri sul campo per avanzare.</p></div>
           <div class="detail-row"><div class="legend" aria-label="Legenda giocatori"><span><i class="legend-dot receiver"></i> Ricevitori</span><span><i class="legend-dot setter"></i> Palleggiatore</span><span><i class="legend-dot other"></i> Altri</span></div><p id="player-detail" class="player-detail" aria-live="polite"></p><div id="overlay-detail" class="overlay-detail" aria-live="polite"></div></div>
         </section>
       </main>

@@ -316,6 +316,7 @@ function render() {
 }
 
 function step(direction) {
+  if (!config) return;
   phaseIndex = (phaseIndex + direction + PHASES.length) % PHASES.length;
   if (phaseIndex !== 1) { showAreas = false; showFaults = false; }
   render();
@@ -336,5 +337,11 @@ $("court").addEventListener("touchend", (event) => {
 
 fetch("references/rotazionivolley/ricezione-a-3.json")
   .then((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
-  .then((data) => { config = data; render(); })
+  .then((data) => {
+    config = data;
+    $("role-select").disabled = false;
+    $("areas-toggle").disabled = false;
+    $("faults-toggle").disabled = false;
+    render();
+  })
   .catch(() => { $("phase-hint").textContent = "Impossibile caricare lo schema. Ricarica la pagina."; });
