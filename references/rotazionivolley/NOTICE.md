@@ -1,13 +1,5 @@
-# Pinned diagram reference
+# Scheme source and attribution
 
-`ricezione-a-3.json` is an unmodified copy of the built-in configuration from
-[rotazionivolley](https://github.com/napo/rotazionivolley/blob/ecd4455d2b9972fc56caa31323f8eb42855bf66f/web/src/configs/ricezione-a-3.json)
-by Maurizio Napolitano, revision `ecd4455d2b9972fc56caa31323f8eb42855bf66f`.
-The upstream project is distributed under Apache License 2.0; the license text
-is included here. SHA-256 of the JSON file:
+The court coordinates, player names, phase names, and libero substitutions in `ricezione-a-3.json` are copied without modification from [napo/rotazionivolley](https://github.com/napo/rotazionivolley/blob/d9e457ee05a2e57f3a7b86a0b176a2bc82d9352e/web/src/configs/ricezione-a-3.json), revision `d9e457ee05a2e57f3a7b86a0b176a2bc82d9352e`, by Maurizio Napolitano.
 
-`9fec10d49f723d5036feaa5ea78a7288d04409d759cf05c601c57d0585d0b5c2`
-
-The generated `data/schemes.json` changes coordinate units, English player IDs,
-Libero and no-Libero variants, and phase timing for the selected
-rule set. It is marked as a derived teaching example in the app.
+The upstream project is licensed under AGPL-3.0-or-later. Its README credits the original VBRotations project by Andy Edwards under Apache 2.0 and says the original player positions retain that attribution and its license conditions. The Apache 2.0 text is included as `LICENSE-APACHE-2.0`. The prototype interface is new; its only volleyball scheme is this upstream JSON.
