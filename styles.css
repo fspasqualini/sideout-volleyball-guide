@@ -72,11 +72,15 @@ h2 { font-size: 26px; margin-top: 4px; }
 .attack-line { position: absolute; z-index: 2; top: 40.2%; left: 0; right: 0; border-top: 2px dashed #ffffffd8; pointer-events: none; }
 .overlay-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .areas-layer { z-index: 1; }
-.faults-layer { z-index: 3; }
+.routes-layer { z-index: 3; }
+.faults-layer { z-index: 4; }
 .zone { position: absolute; color: #846e4f45; font-size: clamp(21px, 3vw, 30px); font-weight: 850; line-height: 1; pointer-events: none; }
 .zone-4 { top: 18%; left: 17%; }.zone-3 { top: 18%; left: 48%; }.zone-2 { top: 18%; right: 17%; }
 .zone-5 { bottom: 16%; left: 17%; }.zone-6 { bottom: 16%; left: 48%; }.zone-1 { bottom: 16%; right: 17%; }
-.players { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.players { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.ball-marker { position: absolute; z-index: 6; width: 23px; height: 23px; border: 2px solid #fff; border-radius: 50%; background: #f8cb55; box-shadow: 0 0 0 2px #a0502d, 0 3px 8px #3c352e88; transform: translate(-50%, -50%); pointer-events: none; transition: left .32s ease, top .32s ease; }
+.ball-marker::before, .ball-marker::after { content: ""; position: absolute; inset: 3px; border: 1px solid #a0502d; border-radius: 50%; transform: rotate(38deg) scaleX(.42); }
+.ball-marker::after { transform: rotate(-45deg) scaleX(.42); }
 .player { position: absolute; pointer-events: auto; width: clamp(34px, 5.8vw, 46px); height: clamp(34px, 5.8vw, 46px); transform: translate(-50%, -50%); border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px #162f3760; color: white; font-weight: 850; font-size: clamp(11px, 1.6vw, 13px); display: grid; place-items: center; padding: 0; transition: left .32s ease, top .32s ease, box-shadow .2s ease, opacity .2s ease; }
 .player.receiver { background: var(--receiver); color: var(--ink); }.player.setter { background: var(--setter); }.player.other { background: var(--other); }
 .player.focused { box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px #1f5962, 0 5px 12px #162f3780; z-index: 2; }
@@ -100,6 +104,7 @@ h2 { font-size: 26px; margin-top: 4px; }
 .legend span { display: inline-flex; align-items: center; gap: 5px; color: #697c79; font-size: 11px; font-weight: 650; }
 .legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
 .legend-dot.receiver { background: var(--receiver); }.legend-dot.setter { background: var(--setter); }.legend-dot.other { background: var(--other); }
+.legend-dot.ball { background: #f8cb55; border: 1px solid #a0502d; }
 .player-detail { border-top: 1px solid #edf1eb; padding-top: 11px; margin: 11px 0 0; color: #4a6668; font-size: 12px; min-height: 28px; }
 .overlay-detail { display: grid; gap: 8px; }
 .overlay-detail-panel { padding: 10px 12px; border: 1px solid #dbe5df; border-radius: 10px; background: #f8faf7; color: #3c5659; font-size: 12px; line-height: 1.5; }
@@ -109,6 +114,7 @@ h2 { font-size: 26px; margin-top: 4px; }
 .overlay-detail-panel li + li { margin-top: 4px; }
 .overlay-detail-panel li.is-fault { color: #a32e27; font-weight: 700; }
 .overlay-note { margin: 0 2px; color: #71827e; font-size: 11px; line-height: 1.45; }
+.court-note { margin-top: 10px; }
 .footer { max-width: 1240px; margin: 0 auto; padding: 0 32px 30px; color: #7e8c88; font-size: 11px; line-height: 1.7; }
 .footer a { text-underline-offset: 2px; }
 @media (min-width: 881px) { .court { max-width: 320px; } }
@@ -129,8 +135,9 @@ h2 { font-size: 26px; margin-top: 4px; }
   .brand { font-size: 15px; }.source-link { font-size: 12px; }
   .viewer-badge { font-size: 9px; padding: 6px 7px; }
   .rotation-button { min-height: 48px; }
-  .focus-toolbar { gap: 6px; }
-  .overlay-buttons button { min-width: 55px; }
+  .focus-toolbar { grid-template-columns: 1fr; gap: 7px; }
+  .overlay-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .overlay-buttons button { min-width: 0; }
   .court-panel { padding: 10px 9px 9px; }
   .court-wrap { padding: 0 12px; }
   .phase-button { padding-left: 5px; min-height: 56px; }

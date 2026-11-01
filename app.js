@@ -20,6 +20,7 @@ let role = ROLES.includes(params.get("role")) ? params.get("role") : "middle";
 let selectedPlayer = null;
 let showAreas = params.get("areas") === "1";
 let showFaults = params.get("faults") === "1";
+let showRoutes = params.get("routes") === "1";
 if (showAreas || showFaults) phaseIndex = 1;
 let config;
 
@@ -30,11 +31,12 @@ function saveView() {
   url.searchParams.set("role", role);
   if (showAreas) url.searchParams.set("areas", "1"); else url.searchParams.delete("areas");
   if (showFaults) url.searchParams.set("faults", "1"); else url.searchParams.delete("faults");
+  if (showRoutes) url.searchParams.set("routes", "1"); else url.searchParams.delete("routes");
   window.history.replaceState(null, "", url);
 }
 
-function activePlayers() {
-  const positions = config.positions[PHASES[phaseIndex].key][String(rotation)];
+function activePlayers(phaseKey = PHASES[phaseIndex].key) {
+  const positions = config.positions[phaseKey][String(rotation)];
   const swap = config.liberoSwaps[String(rotation)]?.receive;
   return config.players
     .filter((player) => player.id !== swap?.replaces)
@@ -73,7 +75,7 @@ function renderControls() {
     button.setAttribute("aria-pressed", String(active));
   }
   $("role-select").value = role;
-  for (const [id, active] of [["areas-toggle", showAreas], ["faults-toggle", showFaults]]) {
+  for (const [id, active] of [["areas-toggle", showAreas], ["faults-toggle", showFaults], ["routes-toggle", showRoutes]]) {
     $(id).setAttribute("aria-pressed", String(active));
     $(id).classList.toggle("active", active);
   }
@@ -225,6 +227,72 @@ function renderFaults(ids, players) {
   return { zones, relations };
 }
 
+function renderRoutes(ids, players) {
+  const layer = $("routes-layer");
+  layer.replaceChildren();
+  if (!showRoutes) return { from: "", to: "", moving: [] };
+  // Base previews the next step; every other phase shows the movement into it.
+  const fromIndex = phaseIndex === 0 ? 0 : phaseIndex - 1;
+  const toIndex = phaseIndex === 0 ? 1 : phaseIndex;
+  const from = Object.fromEntries(activePlayers(PHASES[fromIndex].key).map(({ player, point }) => [player.id, point]));
+  const targets = phaseIndex === 0 ? activePlayers(PHASES[toIndex].key) : players;
+  const moving = [];
+  const defs = svgElement("defs", {});
+  const marker = svgElement("marker", { id: "route-arrow", viewBox: "0 0 12 12", refX: "10", refY: "6", markerWidth: "8", markerHeight: "8", orient: "auto" });
+  marker.append(svgElement("path", { d: "M 1 1 L 11 6 L 1 11 Z", fill: "#7145a4" }));
+  defs.append(marker);
+  layer.append(defs);
+  for (const { player, point: end } of targets) {
+    if (!ids.includes(player.id)) continue;
+    const start = from[player.id];
+    if (!start) continue;
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.hypot(dx, dy);
+    if (length < 18) continue;
+    const ux = dx / length;
+    const uy = dy / length;
+    const x1 = start.x + ux * 13;
+    const y1 = start.y + uy * 13;
+    const x2 = end.x - ux * 26;
+    const y2 = end.y - uy * 26;
+    if (Math.hypot(x2 - x1, y2 - y1) < 8) continue;
+    layer.append(svgElement("circle", { cx: start.x, cy: start.y, r: 7, fill: "#fff", stroke: "#7145a4", "stroke-width": 3 }));
+    layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#fff", "stroke-width": 9, "stroke-linecap": "round" }));
+    layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#7145a4", "stroke-width": 4, "stroke-linecap": "round", "stroke-dasharray": "9 5", "marker-end": "url(#route-arrow)" }));
+    moving.push(player.shortLabel);
+  }
+  return { from: PHASES[fromIndex].label, to: PHASES[toIndex].label, moving };
+}
+
+function renderBall(players) {
+  const points = Object.fromEntries(players.map(({ player, point }) => [player.id, point]));
+  let point = { x: 300, y: 30 };
+  if (phaseIndex === 1) {
+    const receivers = ["S1", "S2", "L1"].map((id) => points[id]).filter(Boolean);
+    point = { x: receivers.reduce((sum, p) => sum + p.x, 0) / receivers.length,
+      y: receivers.reduce((sum, p) => sum + p.y, 0) / receivers.length - 42 };
+  } else if (phaseIndex === 2 && points.P) {
+    point = { x: points.P.x + (points.P.x > 440 ? -58 : 58), y: points.P.y - 20 };
+  }
+  point.x = Math.max(94, Math.min(506, point.x));
+  point.y = Math.max(13, Math.min(492, point.y));
+  const distanceToPlayers = (candidate) => Math.min(...Object.values(points).map((p) => Math.hypot(candidate.x - p.x, candidate.y - p.y)));
+  if (distanceToPlayers(point) < 53) {
+    const candidates = [
+      { x: Math.min(506, point.x + 65), y: point.y },
+      { x: Math.max(94, point.x - 65), y: point.y },
+      { x: point.x, y: Math.min(492, point.y + 65) },
+      { x: point.x, y: Math.max(13, point.y - 65) },
+    ];
+    point = candidates.reduce((best, candidate) => distanceToPlayers(candidate) > distanceToPlayers(best) ? candidate : best);
+  }
+  const marker = $("ball-marker");
+  marker.style.left = `${((point.x - 75) / 450) * 100}%`;
+  marker.style.top = `${((point.y + 15) / 535) * 100}%`;
+  marker.setAttribute("aria-label", `Pallone indicativo, fase ${PHASES[phaseIndex].label}`);
+}
+
 function addDetail(title, content) {
   const panel = document.createElement("section");
   panel.className = "overlay-detail-panel";
@@ -251,6 +319,8 @@ function renderPlayersAndOverlays() {
   for (const node of [...layer.children]) if (!present.has(node.dataset.player)) node.remove();
   const { zones, relations } = renderFaults(ids, players);
   const selectedAreas = renderAreas(ids);
+  const routes = renderRoutes(ids, players);
+  renderBall(players);
 
   for (const { player, point } of players) {
     let button = layer.querySelector(`[data-player="${player.id}"]`);
@@ -302,6 +372,11 @@ function renderPlayersAndOverlays() {
     note.textContent = "Si confrontano le zone adiacenti al servizio avversario. In partita contano i piedi; qui si usa il centro del bollino.";
     $("overlay-detail").append(note);
   }
+  if (showRoutes) {
+    addDetail("Percorsi", routes.moving.length
+      ? `${routes.from} → ${routes.to}: ${routes.moving.join(", ")}. Il punto vuoto indica la partenza; la freccia indica l’arrivo.`
+      : `${routes.from} → ${routes.to}: nessuno spostamento visibile per il focus scelto.`);
+  }
 }
 
 function render() {
@@ -325,6 +400,7 @@ function step(direction) {
 $("role-select").addEventListener("change", (event) => { role = event.target.value; selectedPlayer = null; render(); });
 $("areas-toggle").addEventListener("click", () => { showAreas = !showAreas; if (showAreas) phaseIndex = 1; render(); });
 $("faults-toggle").addEventListener("click", () => { showFaults = !showFaults; if (showFaults) phaseIndex = 1; render(); });
+$("routes-toggle").addEventListener("click", () => { showRoutes = !showRoutes; render(); });
 let touchStart = null;
 $("court").addEventListener("touchstart", (event) => { touchStart = { x: event.changedTouches[0].screenX, y: event.changedTouches[0].screenY }; }, { passive: true });
 $("court").addEventListener("touchend", (event) => {
@@ -342,6 +418,7 @@ fetch("references/rotazionivolley/ricezione-a-3.json")
     $("role-select").disabled = false;
     $("areas-toggle").disabled = false;
     $("faults-toggle").disabled = false;
+    $("routes-toggle").disabled = false;
     render();
   })
   .catch(() => { $("phase-hint").textContent = "Impossibile caricare lo schema. Ricarica la pagina."; });
