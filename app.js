@@ -260,7 +260,11 @@ function renderRoutes(ids, players) {
     layer.append(svgElement("circle", { cx: start.x, cy: start.y, r: 7, fill: "#fff", stroke: "#7145a4", "stroke-width": 3 }));
     layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#fff", "stroke-width": 9, "stroke-linecap": "round" }));
     layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#7145a4", "stroke-width": 4, "stroke-linecap": "round", "stroke-dasharray": "9 5", "marker-end": "url(#route-arrow)" }));
-    moving.push(player.shortLabel);
+    const direction = [
+      Math.abs(dx) >= 10 ? (dx > 0 ? "a destra" : "a sinistra") : "",
+      Math.abs(dy) >= 10 ? (dy > 0 ? "verso il fondo" : "verso la rete") : "",
+    ].filter(Boolean).join(" e ");
+    moving.push(`${player.shortLabel}: ${direction}`);
   }
   return { from: PHASES[fromIndex].label, to: PHASES[toIndex].label, moving };
 }
@@ -374,7 +378,7 @@ function renderPlayersAndOverlays() {
   }
   if (showRoutes) {
     addDetail("Percorsi", routes.moving.length
-      ? `${routes.from} → ${routes.to}: ${routes.moving.join(", ")}. Il punto vuoto indica la partenza; la freccia indica l’arrivo.`
+      ? `${routes.from} → ${routes.to}: ${routes.moving.join("; ")}. Il punto vuoto indica la partenza; la freccia indica l’arrivo.`
       : `${routes.from} → ${routes.to}: nessuno spostamento visibile per il focus scelto.`);
   }
 }
