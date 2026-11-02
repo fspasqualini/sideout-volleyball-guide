@@ -1,8 +1,10 @@
-# Ricezione a tre — mobile prototype
+# Ricezione a tre — responsive prototype
 
 A small, Italian-language viewer for the six rotations and five receive-side phases of the built-in **ricezione-a-3** scheme in [napo/rotazionivolley](https://github.com/napo/rotazionivolley). The three main receivers are S1, S2 and L1; the source also assigns some short-ball coverage to other players. Player coordinates, libero substitutions, and reception competence polygons come directly from its JSON file. This prototype does not add coaching positions or other formations.
 
 ![Phone preview showing P2, the central focus, the ball marker, and a movement arrow](preview/mobile.png)
+
+![Desktop preview with a larger court and vertical phase sequence](preview/desktop.png)
 
 [View the competence and positional-fault overlays](preview/overlays.png).
 
@@ -12,7 +14,7 @@ A small, Italian-language viewer for the six rotations and five receive-side pha
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000` on a computer or, using the computer's local IP address, on a phone on the same network. Rotations run P2 → P1 → P6 → P5 → P4 → P3. Choose a phase beside the court, or swipe left/right on the court. The role selector defaults to **Centrale** and highlights the active central. Selecting **Schiacciatore** highlights both hitters; tapping either marker focuses that player alone.
+Open `http://localhost:8000` on a computer or, using the computer's local IP address, on a phone on the same network. Rotations run P2 → P1 → P6 → P5 → P4 → P3. The layout adapts to the available screen width: wide windows show a larger court beside a vertical phase sequence, while narrow windows keep the phone layout. Choose a phase directly, use the ← → buttons on wider screens, press the left/right keyboard arrows, or swipe left/right on the court. Keyboard arrows leave form controls alone. The role selector defaults to **Centrale** and highlights the active central. Selecting **Schiacciatore** highlights both hitters; tapping either marker focuses that player alone.
 
 **Aree** shows the selected role's stored reception polygons and claimed shared borders. **Falli** shows the selected role's adjacent rotation relationships. Either button switches to **Ricezione**, the only phase where these overlays apply; choosing another phase closes them. The fault check follows the source app's model: it compares marker centers at the opposing service contact. Actual positional faults depend on players' feet. The URL retains the rotation, phase, role, and active overlays.
 
