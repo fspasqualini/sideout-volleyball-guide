@@ -91,7 +91,13 @@ h2 { font-size: 26px; margin-top: 4px; }
 .phase-dock { margin-top: 16px; padding: 0; background: #fff; }
 .phase-heading { margin-bottom: 10px; }
 .phase-heading h3 { font-size: 21px; margin-top: 3px; }
-.phase-heading > span { color: #8da09b; font-size: 11px; font-weight: 750; }
+.phase-heading-actions > span { color: #8da09b; font-size: 11px; font-weight: 750; }
+.phase-heading-actions { display: flex; align-items: center; gap: 10px; }
+.phase-arrows { display: none; gap: 5px; }
+.phase-nav-button { width: 42px; height: 42px; display: grid; place-items: center; padding: 0; border: 1px solid #bfd2c7; border-radius: 9px; background: #f7faf7; color: var(--teal); font-size: 22px; font-weight: 750; line-height: 1; }
+.phase-nav-button:hover { background: #edf5f0; border-color: var(--teal); }
+.phase-nav-button:active { transform: translateY(1px); }
+.phase-nav-button:disabled { cursor: wait; opacity: .5; }
 .phase-rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
 .phase-button { min-width: 0; min-height: 60px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: #f6f8f5; padding: 8px 5px 7px 9px; color: #52696b; display: flex; flex-direction: column; justify-content: space-between; }
 .phase-number { font-size: 10px; font-weight: 800; color: #8ba09b; }
@@ -117,8 +123,34 @@ h2 { font-size: 26px; margin-top: 4px; }
 .court-note { margin-top: 10px; }
 .footer { max-width: 1240px; margin: 0 auto; padding: 0 32px 30px; color: #7e8c88; font-size: 11px; line-height: 1.7; }
 .footer a { text-underline-offset: 2px; }
-@media (min-width: 881px) { .court { max-width: 320px; } }
-@media (max-width: 880px) {
+@media (min-width: 768px) { .phase-arrows { display: flex; } }
+@media (min-width: 1024px) {
+  .topbar, .footer { max-width: 1440px; }
+  .topbar { padding: 19px 24px 10px; }
+  .layout { display: block; max-width: 1440px; padding: 10px 24px 30px; }
+  .intro { position: static; display: flex; align-items: center; gap: 32px; padding: 0; margin: 0 0 16px; }
+  .intro .eyebrow, .intro .source-card, .intro .intro-foot { display: none; }
+  .intro h1 { flex: 0 1 550px; margin: 0; font-size: clamp(28px, 3vw, 42px); line-height: 1.12; letter-spacing: -.055em; }
+  .intro h1 em { display: inline; }
+  .intro-copy { flex: 1 1 400px; max-width: 520px; margin: 0; font-size: 14px; line-height: 1.5; }
+  .viewer { display: grid; grid-template-columns: minmax(290px, 420px) minmax(0, 1fr); grid-template-areas: "heading heading" "rotation court" "focus court" "phase court" "details court"; column-gap: clamp(22px, 4vw, 54px); row-gap: 11px; align-items: start; padding: 20px 22px; }
+  .viewer-heading { grid-area: heading; margin: 0 0 1px; }
+  .rotation-area { grid-area: rotation; }
+  .focus-toolbar { grid-area: focus; grid-template-columns: 1fr; margin: 0; gap: 8px; }
+  .overlay-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .overlay-buttons button { min-width: 0; }
+  .phase-dock { grid-area: phase; margin: 0; }
+  .phase-rail { grid-template-columns: 1fr; gap: 6px; }
+  .phase-button { min-height: 44px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; padding: 0 14px; }
+  .phase-number { width: 25px; font-size: 12px; }
+  .phase-name { font-size: 14px; }
+  .phase-hint { margin-top: 9px; }
+  .court-panel { grid-area: court; margin: 0; padding: 14px 18px; }
+  .court-wrap { padding: 0 36px; }
+  .court { max-width: min(520px, 48vh); }
+  .detail-row { grid-area: details; padding: 0; }
+}
+@media (max-width: 1023px) {
   .topbar { padding: 17px 18px 11px; }
   .layout { display: block; padding: 12px 12px 30px; }
   .intro { display: none; }

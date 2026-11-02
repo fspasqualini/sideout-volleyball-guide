@@ -100,6 +100,10 @@ function renderControls() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   }
+  $("phase-prev").setAttribute("aria-label", `Fase precedente: ${PHASES[(phaseIndex - 1 + PHASES.length) % PHASES.length].label}`);
+  $("phase-next").setAttribute("aria-label", `Fase successiva: ${PHASES[(phaseIndex + 1) % PHASES.length].label}`);
+  $("phase-prev").title = $("phase-prev").getAttribute("aria-label");
+  $("phase-next").title = $("phase-next").getAttribute("aria-label");
 }
 
 function rotationZones() {
@@ -405,6 +409,16 @@ $("role-select").addEventListener("change", (event) => { role = event.target.val
 $("areas-toggle").addEventListener("click", () => { showAreas = !showAreas; if (showAreas) phaseIndex = 1; render(); });
 $("faults-toggle").addEventListener("click", () => { showFaults = !showFaults; if (showFaults) phaseIndex = 1; render(); });
 $("routes-toggle").addEventListener("click", () => { showRoutes = !showRoutes; render(); });
+$("phase-prev").addEventListener("click", () => step(-1));
+$("phase-next").addEventListener("click", () => step(1));
+document.addEventListener("keydown", (event) => {
+  if (event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  if (event.target instanceof Element && event.target.closest("input, select, textarea, [contenteditable]")) return;
+  if (!config) return;
+  event.preventDefault();
+  step(event.key === "ArrowRight" ? 1 : -1);
+});
 let touchStart = null;
 $("court").addEventListener("touchstart", (event) => { touchStart = { x: event.changedTouches[0].screenX, y: event.changedTouches[0].screenY }; }, { passive: true });
 $("court").addEventListener("touchend", (event) => {
@@ -423,6 +437,8 @@ fetch("references/rotazionivolley/ricezione-a-3.json")
     $("areas-toggle").disabled = false;
     $("faults-toggle").disabled = false;
     $("routes-toggle").disabled = false;
+    $("phase-prev").disabled = false;
+    $("phase-next").disabled = false;
     render();
   })
   .catch(() => { $("phase-hint").textContent = "Impossibile caricare lo schema. Ricarica la pagina."; });

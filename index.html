@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#102c38">
-    <meta name="description" content="Un prototipo mobile per esplorare le sei rotazioni della ricezione a tre di rotazionivolley.">
+    <meta name="description" content="Esplora le sei rotazioni della ricezione a tre di rotazionivolley su telefono o computer.">
     <title>Ricezione a tre · Prototipo</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
@@ -21,8 +21,8 @@
       <main class="layout">
         <section class="intro" aria-labelledby="page-title">
           <p class="eyebrow"><span class="eyebrow-dot"></span> Prototipo · 01</p>
-          <h1 id="page-title">Lo schema,<br><em>nel palmo della mano.</em></h1>
-          <p class="intro-copy">Esplora le sei rotazioni della ricezione a tre. Scegli la posizione del palleggiatore e segui le fasi direttamente accanto al campo.</p>
+          <h1 id="page-title">Lo schema, <em>fase dopo fase.</em></h1>
+          <p class="intro-copy">Scegli la posizione del palleggiatore e avanza con i pulsanti accanto al campo o con le frecce della tastiera.</p>
           <div class="source-card"><span class="source-card-icon" aria-hidden="true">◎</span><div><strong>Uno schema, una fonte</strong><span>Posizioni originali di rotazionivolley · S1, S2 e L1 ricevitori principali</span></div></div>
           <p class="intro-foot">Le posizioni sono uno schema di esempio. I movimenti tra una fase e l’altra sono solo una transizione visiva.</p>
         </section>
@@ -34,7 +34,7 @@
             <label class="role-picker" for="role-select"><span>Focus sul ruolo</span><select id="role-select" disabled><option value="middle">Centrale</option><option value="setter">Palleggiatore</option><option value="hitter">Schiacciatore</option><option value="opposite">Opposto</option><option value="libero">Libero</option></select></label>
             <div class="overlay-buttons" role="group" aria-label="Sovrapposizioni sul campo"><button type="button" id="areas-toggle" aria-pressed="false" aria-label="Mostra le aree di competenza del ruolo nella fase Ricezione" disabled>Aree</button><button type="button" id="faults-toggle" aria-pressed="false" aria-label="Mostra i falli di posizione del ruolo nella fase Ricezione" disabled>Falli</button><button type="button" id="routes-toggle" aria-pressed="false" aria-label="Mostra gli spostamenti del ruolo selezionato" disabled>Percorsi</button></div>
           </div>
-          <div class="phase-dock" aria-label="Sequenza delle azioni"><div class="phase-heading"><div><span class="section-label">Sequenza</span><h3 id="phase-title">Base</h3></div><span id="phase-count">1 di 5</span></div><div class="phase-rail" id="phase-rail" role="group" aria-label="Scegli una fase"></div><p class="phase-hint" id="phase-hint">Tocca una fase o scorri sul campo per avanzare.</p></div>
+          <div class="phase-dock" aria-label="Sequenza delle azioni"><div class="phase-heading"><div><span class="section-label">Sequenza</span><h3 id="phase-title">Base</h3></div><div class="phase-heading-actions"><span id="phase-count">1 di 5</span><div class="phase-arrows" role="group" aria-label="Navigazione delle fasi"><button type="button" id="phase-prev" class="phase-nav-button" aria-label="Fase precedente" title="Fase precedente" disabled>←</button><button type="button" id="phase-next" class="phase-nav-button" aria-label="Fase successiva" title="Fase successiva" disabled>→</button></div></div></div><div class="phase-rail" id="phase-rail" role="group" aria-label="Scegli una fase"></div><p class="phase-hint" id="phase-hint">Tocca una fase o scorri sul campo per avanzare.</p></div>
           <div class="court-panel">
             <div class="court-topline"><span>RETE <span aria-hidden="true">↑</span></span><span id="phase-overline">01 / 05 · BASE</span></div>
             <div class="court-wrap"><div class="court" id="court" role="group" aria-label="Campo della tua squadra">
