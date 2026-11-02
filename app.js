@@ -243,7 +243,7 @@ function renderRoutes(ids, players) {
   const moving = [];
   const defs = svgElement("defs", {});
   const marker = svgElement("marker", { id: "route-arrow", viewBox: "0 0 12 12", refX: "10", refY: "6", markerWidth: "8", markerHeight: "8", orient: "auto" });
-  marker.append(svgElement("path", { d: "M 1 1 L 11 6 L 1 11 Z", fill: "#7145a4" }));
+  marker.append(svgElement("path", { d: "M 1 1 L 11 6 L 1 11 Z", fill: "#184878" }));
   defs.append(marker);
   layer.append(defs);
   for (const { player, point: end } of targets) {
@@ -261,9 +261,9 @@ function renderRoutes(ids, players) {
     const x2 = end.x - ux * 26;
     const y2 = end.y - uy * 26;
     if (Math.hypot(x2 - x1, y2 - y1) < 8) continue;
-    layer.append(svgElement("circle", { cx: start.x, cy: start.y, r: 7, fill: "#fff", stroke: "#7145a4", "stroke-width": 3 }));
+    layer.append(svgElement("circle", { cx: start.x, cy: start.y, r: 7, fill: "#fff", stroke: "#184878", "stroke-width": 3 }));
     layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#fff", "stroke-width": 9, "stroke-linecap": "round" }));
-    layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#7145a4", "stroke-width": 4, "stroke-linecap": "round", "stroke-dasharray": "9 5", "marker-end": "url(#route-arrow)" }));
+    layer.append(svgElement("line", { x1, y1, x2, y2, stroke: "#184878", "stroke-width": 4, "stroke-linecap": "round", "stroke-dasharray": "9 5", "marker-end": "url(#route-arrow)" }));
     const direction = [
       Math.abs(dx) >= 10 ? (dx > 0 ? "a destra" : "a sinistra") : "",
       Math.abs(dy) >= 10 ? (dy > 0 ? "verso il fondo" : "verso la rete") : "",
